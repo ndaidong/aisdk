@@ -1,0 +1,28 @@
+# Development files
+examples.js
+tests/
+*.test.js
+
+# Documentation
+*.md
+!README.md
+
+# Config files for development tools
+.eslintrc*
+.prettierrc*
+tsconfig.json
+vitest.config.js
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.*

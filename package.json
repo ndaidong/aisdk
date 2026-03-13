@@ -1,0 +1,64 @@
+{
+  "name": "@ndaidong/aisdk",
+  "version": "1.0.0",
+  "description": "A thin, unified AI client for OpenAI, Anthropic, Google, DashScope, and DeepSeek with automatic param normalization and fallback support",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./errors": "./src/errors.js",
+    "./registry": "./src/registry.js",
+    "./config": "./src/config.js",
+    "./providers": "./src/providers.js",
+    "./coerce": "./src/coerce.js",
+    "./validation": "./src/validation.js"
+  },
+  "files": [
+    "src",
+    "models.json"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "lint": "eslint src/ test/",
+    "lint:fix": "eslint src/ test/ --fix",
+    "eval:openai": "node examples/openai.js",
+    "eval:anthropic": "node examples/anthropic.js",
+    "eval:google": "node examples/google.js",
+    "eval:dashscope": "node examples/dashscope.js",
+    "eval:deepseek": "node examples/deepseek.js"
+  },
+  "keywords": [
+    "ai",
+    "llm",
+    "openai",
+    "anthropic",
+    "google",
+    "gemini",
+    "claude",
+    "gpt",
+    "qwen",
+    "deepseek",
+    "chat",
+    "generation",
+    "sdk"
+  ],
+  "author": "ndaidong",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ndaidong/aisdk"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@vinejs/vine": "^3.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0"
+  }
+}

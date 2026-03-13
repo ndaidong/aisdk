@@ -1,0 +1,178 @@
+[
+  {
+    "id": "gemini-2.5-flash",
+    "name": "gemini-2.5-flash",
+    "provider": "google",
+    "input_price": 0.3,
+    "output_price": 2.5,
+    "cache_price": 0.03,
+    "max_in": 1048576,
+    "max_out": 65536,
+    "enable": true
+  },
+  {
+    "id": "gemini-2.5-flash-lite",
+    "name": "gemini-2.5-flash-lite",
+    "provider": "google",
+    "input_price": 0.1,
+    "output_price": 0.4,
+    "cache_price": 0.01,
+    "max_in": 1048576,
+    "max_out": 65536,
+    "enable": true
+  },
+  {
+    "id": "deepseek-chat",
+    "name": "deepseek-chat",
+    "provider": "deepseek",
+    "input_price": 0.28,
+    "output_price": 0.42,
+    "cache_price": 0.028,
+    "max_in": 128000,
+    "max_out": 8000,
+    "enable": true
+  },
+  {
+    "id": "deepseek-reasoner",
+    "name": "deepseek-reasoner",
+    "provider": "deepseek",
+    "input_price": 0.28,
+    "output_price": 0.42,
+    "cache_price": 0.028,
+    "max_in": 128000,
+    "max_out": 64000,
+    "enable": true
+  },
+  {
+    "id": "gpt-4.1-nano",
+    "name": "gpt-4.1-nano",
+    "provider": "openai",
+    "input_price": 0.1,
+    "output_price": 0.4,
+    "cache_price": 0.025,
+    "max_in": 1047576,
+    "max_out": 32768,
+    "enable": true
+  },
+  {
+    "id": "gpt-4o-mini",
+    "name": "gpt-4o-mini",
+    "provider": "openai",
+    "input_price": 0.15,
+    "output_price": 0.6,
+    "cache_price": 0.075,
+    "max_in": 128000,
+    "max_out": 16384,
+    "enable": true
+  },
+  {
+    "id": "gpt-5-nano",
+    "name": "gpt-5-nano",
+    "provider": "openai",
+    "input_price": 0.05,
+    "output_price": 0.4,
+    "cache_price": 0.005,
+    "max_in": 400000,
+    "max_out": 128000,
+    "enable": true
+  },
+  {
+    "id": "claude-opus-4-6",
+    "name": "claude-opus-4-6",
+    "provider": "anthropic",
+    "input_price": 5,
+    "output_price": 25,
+    "cache_price": 0,
+    "max_in": 200000,
+    "max_out": 128000,
+    "enable": true
+  },
+  {
+    "id": "claude-sonnet-4-6",
+    "name": "claude-sonnet-4-6",
+    "provider": "anthropic",
+    "input_price": 3,
+    "output_price": 15,
+    "cache_price": 0,
+    "max_in": 200000,
+    "max_out": 128000,
+    "enable": true
+  },
+  {
+    "id": "claude-haiku-4-5",
+    "name": "claude-haiku-4-5",
+    "provider": "anthropic",
+    "input_price": 1,
+    "output_price": 5,
+    "cache_price": 0,
+    "max_in": 200000,
+    "max_out": 128000,
+    "enable": true
+  },
+  {
+    "id": "qwen-flash",
+    "name": "qwen-flash",
+    "provider": "dashscope",
+    "input_price": 0.05,
+    "output_price": 0.4,
+    "cache_price": 0,
+    "max_in": 995904,
+    "max_out": 32768,
+    "enable": true
+  },
+  {
+    "id": "qwen3.5-flash",
+    "name": "qwen3.5-flash",
+    "provider": "dashscope",
+    "input_price": 0.1,
+    "output_price": 0.4,
+    "cache_price": 0,
+    "max_in": 983616,
+    "max_out": 65536,
+    "enable": true
+  },
+  {
+    "id": "qwen-plus",
+    "name": "qwen-plus",
+    "provider": "dashscope",
+    "input_price": 0.4,
+    "output_price": 1.2,
+    "cache_price": 0,
+    "max_in": 997952,
+    "max_out": 32768,
+    "enable": true
+  },
+  {
+    "id": "qwen3.5-plus",
+    "name": "qwen3.5-plus",
+    "provider": "dashscope",
+    "input_price": 0.4,
+    "output_price": 2.4,
+    "cache_price": 0,
+    "max_in": 991808,
+    "max_out": 65536,
+    "enable": true
+  },
+  {
+    "id": "qwen-max",
+    "name": "qwen-max",
+    "provider": "dashscope",
+    "input_price": 1.6,
+    "output_price": 6.4,
+    "cache_price": 0,
+    "max_in": 30720,
+    "max_out": 8192,
+    "enable": true
+  },
+  {
+    "id": "qwen3-max",
+    "name": "qwen3-max",
+    "provider": "dashscope",
+    "input_price": 1.2,
+    "output_price": 6,
+    "cache_price": 0,
+    "max_in": 258048,
+    "max_out": 65536,
+    "enable": true
+  }
+]
