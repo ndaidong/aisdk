@@ -2,7 +2,7 @@
  * @fileoverview Thin AI client — single unified interface for text generation.
  *
  * @example Basic usage
- * import { createAi } from '@ndaidong/aisdk'
+ * import { createAi } from 'aisdk'
  *
  * const ai = createAi()
  * const result = await ai.ask({

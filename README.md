@@ -1,4 +1,4 @@
-# @ndaidong/aisdk
+# aisdk
 
 A thin, unified AI client for OpenAI, Anthropic, Google, DashScope, and DeepSeek with automatic parameter normalization and fallback support.
 
@@ -14,13 +14,17 @@ A thin, unified AI client for OpenAI, Anthropic, Google, DashScope, and DeepSeek
 ## Installation
 
 ```bash
-npm install @ndaidong/aisdk
+npm i aisdk
+# or 
+pnpm i aisdk
+# or
+bun add aisdk
 ```
 
 ## Quick Start
 
 ```javascript
-import { createAi } from '@ndaidong/aisdk'
+import { createAi } from 'aisdk'
 
 const ai = createAi()
 
@@ -90,7 +94,7 @@ Sends a text generation request.
 ### OpenAI
 
 ```javascript
-import { createAi } from '@ndaidong/aisdk'
+import { createAi } from 'aisdk'
 
 const ai = createAi()
 
@@ -187,7 +191,7 @@ This library does not ship with a predefined list of models. Instead, it accepts
 Models are loaded programmatically via `setModels()` from external sources (CMS, API, or local files for evaluation):
 
 ```javascript
-import { createAi, setModels } from '@ndaidong/aisdk'
+import { createAi, setModels } from 'aisdk'
 
 // Load models from your CMS or API
 const modelsFromCms = await fetch('https://cms.example.com/api/models').then(r => r.json())
@@ -220,7 +224,7 @@ Each model record should include:
 ## Error Handling
 
 ```javascript
-import { createAi, ProviderError, InputError } from '@ndaidong/aisdk'
+import { createAi, ProviderError, InputError } from 'aisdk'
 
 const ai = createAi()
 
