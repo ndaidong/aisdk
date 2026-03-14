@@ -1,4 +1,4 @@
-# aisdk
+# @pwshub/aisdk
 
 A thin, unified AI client for OpenAI, Anthropic, Google, DashScope, and DeepSeek with automatic parameter normalization and fallback support.
 
@@ -14,17 +14,17 @@ A thin, unified AI client for OpenAI, Anthropic, Google, DashScope, and DeepSeek
 ## Installation
 
 ```bash
-npm i aisdk
-# or 
-pnpm i aisdk
+npm i @pwshub/aisdk
 # or
-bun add aisdk
+pnpm i @pwshub/aisdk
+# or
+bun add @pwshub/aisdk
 ```
 
 ## Quick Start
 
 ```javascript
-import { createAi } from 'aisdk'
+import { createAi } from '@pwshub/aisdk'
 
 const ai = createAi()
 
@@ -94,7 +94,7 @@ Sends a text generation request.
 ### OpenAI
 
 ```javascript
-import { createAi } from 'aisdk'
+import { createAi } from '@pwshub/aisdk'
 
 const ai = createAi()
 
@@ -191,7 +191,7 @@ This library does not ship with a predefined list of models. Instead, it accepts
 Models are loaded programmatically via `setModels()` from external sources (CMS, API, or local files for evaluation):
 
 ```javascript
-import { createAi, setModels } from 'aisdk'
+import { createAi, setModels } from '@pwshub/aisdk'
 
 // Load models from your CMS or API
 const modelsFromCms = await fetch('https://cms.example.com/api/models').then(r => r.json())
@@ -224,7 +224,7 @@ Each model record should include:
 ## Error Handling
 
 ```javascript
-import { createAi, ProviderError, InputError } from 'aisdk'
+import { createAi, ProviderError, InputError } from '@pwshub/aisdk'
 
 const ai = createAi()
 
