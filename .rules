@@ -1,8 +1,10 @@
 # AI Assistant Rules
 
-## Developer Profile
-- Senior Fullstack Developer (15 years experience)
-- Philosophy: Simple is better. Minimalism. Functional programming.
+## Philosophy
+- Minimalism.
+- Simple is better.
+- Clean code, easy to read.
+- Functional Programming.
 
 ## Tech Stack
 - Runtime: Node.js, Bun, Deno
@@ -13,32 +15,23 @@
 - Styling: Native CSS (No Tailwind)
 - Language: JavaScript with JSDocs (No TypeScript)
 
-## Coding Standards (STRICT)
-- No semicolons
-- Single quotes for strings
-- 2 spaces for indentation
-- camelCase for variables and functions
-- ESM syntax only (import/export)
-- Arrow functions preferred (max 3 parameters)
-- No generator function
-- No class and OOP stuff
-- JSDocs required before functions and important variables
-- Comments in American English ONLY (no Vietnamese and Chinese in code)
-- More rules defined in eslint.config.js
-
-## Security Rules (CRITICAL)
-1. NEVER output or request .env and example.env file contents
-2. NEVER hardcode API keys, passwords, or secrets
-3. NEVER send sensitive data to external AI services
-4. Validate all environment variables at startup
-5. Follow .aiignore file for excluded files
+## Coding Standards
+- Read `.ai/CODING_STANDARDS.md` for more info
+- Respect eslint.config.js
 
 ## When Writing Code
-1. Read existing code patterns first
-2. Use functional programming (pure functions, immutability)
-3. Keep dependencies minimal
-4. Handle errors explicitly
-5. Add JSDocs comments
+- Read existing code patterns first
+- Follow the current coding style
+- Apply functional programming thinking
+- Handle errors explicitly
+- Keep dependencies minimal
+
+## Security Rules (CRITICAL)
+- NEVER output or request .env and example.env file contents
+- NEVER hardcode API keys, passwords, or secrets
+- NEVER send sensitive data to external AI services
+- Follow .aiignore file for excluded files
+- Read `.ai/SECURITY_POLICY.md` for more info
 
 ## Testing
 - Write tests for critical business logic
@@ -46,11 +39,7 @@
 - No complex mocking frameworks unless necessary
 
 ## When in Doubt
-Ask for clarification before generating code.
+- Ask for clarification before generating code.
 
-## Context Files
-- Session Context: .ai/sessions/CONTEXT.md (check CONTEXT.md)
-- Progress: .ai/sessions/PROGRESS.md (check PROGRESS.md)
-- Skills Reference: .ai/AGENT_SKILLS.md
-- Coding Details: .ai/CODING_STANDARDS.md
-- Security Policy: .ai/SECURITY_POLICY.md
+## Guideline for AI Agents
+- Read `.ai/README.md` to get overview.

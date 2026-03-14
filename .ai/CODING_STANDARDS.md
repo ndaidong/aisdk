@@ -10,6 +10,8 @@ All JavaScript code generated must follow these rules strictly.
 - 2 spaces for indentation
 - Always use ESM syntax (import/export)
 - Arrow functions preferred, max 3 parameters
+- No generator function
+- No class and OOP stuff
 - Functional programming paradigm (pure functions, immutability)
 - Add JSDocs comments before functions and important variables
 - Comments must be in American English

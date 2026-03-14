@@ -9,7 +9,7 @@ This directory contains configuration and guidelines for AI assistants working o
 .ai/
 ├── README.md # This file
 ├── CODING_STANDARDS.md # Coding rules (JSDocs, style, etc.)
-├── SECURITY_POLICY.md # Security guidelines
+├── SECURITY_POLICY.md # Security & privacy
 ├── AGENT_SKILLS.md # External skills references
 ├── CONTEXT.md # Template for Session context
 ├── PROGRESS.md # Template for Progress tracking
@@ -19,7 +19,9 @@ This directory contains configuration and guidelines for AI assistants working o
 ```
 
 ## Usage
-1. Read `.rules` at project root for overview
+1. At begining of each session
+  - Read `sessions/CONTEXT.md` if present
+  - Read `sessions/PROGRESS.md` if present
 2. Read `CODING_STANDARDS.md` for best practices
 3. Read `AGENT_SKILLS.md` for advanced knowledge
 4. Read `SECURITY_POLICY.md` for security & privacy

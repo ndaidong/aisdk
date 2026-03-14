@@ -102,7 +102,7 @@ const anthropic = {
       model: modelName,
       messages: filtered,
       ...(system && { system }),
-      max_tokens: 8096, // required — overridden if maxTokens was in config
+      max_tokens: 4096, // required — overridden if maxTokens was in config
       ...config,
       ...providerOptions,
     }

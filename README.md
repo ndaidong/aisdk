@@ -280,6 +280,13 @@ npm run lint
 npm run lint:fix
 ```
 
+## AI Agents
+
+- Qwen Code
+- Claude Code
+- Google Gemini
+- DeepSeek: supporter
+
 ## License
 
 MIT
