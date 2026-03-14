@@ -280,12 +280,13 @@ npm run lint
 npm run lint:fix
 ```
 
-## AI Agents
+## AI Agents team
 
-- Qwen Code
-- Claude Code
-- Google Gemini
+- Claude Code: initiator
+- Qwen Code: implementer
+- Google Gemini: reviewer
 - DeepSeek: supporter
+- Ollama: supporter
 
 ## License
 
