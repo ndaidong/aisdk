@@ -4,7 +4,7 @@
 - **ID:** TASK-001
 - **Description:** [Brief description]
 - **Status:** [Not Started | In Progress | Blocked | Done]
-- **Last Updated:** YYYY-MM-DD
+- **Last Updated:** [datetime in ISO format]
 
 ## Last Session Summary
 - **Completed:** [What was done]

@@ -24,6 +24,7 @@
 - No class and OOP stuff
 - JSDocs required before functions and important variables
 - Comments in American English ONLY (no Vietnamese and Chinese in code)
+- More rules defined in eslint.config.js
 
 ## Security Rules (CRITICAL)
 1. NEVER output or request .env and example.env file contents
@@ -39,6 +40,11 @@
 4. Handle errors explicitly
 5. Add JSDocs comments
 
+## Testing
+- Write tests for critical business logic
+- Use simple test runners (node:test, bun:test, vitest)
+- No complex mocking frameworks unless necessary
+
 ## When in Doubt
 Ask for clarification before generating code.
 
@@ -48,3 +54,5 @@ Ask for clarification before generating code.
 - Skills Reference: .ai/AGENT_SKILLS.md
 - Coding Details: .ai/CODING_STANDARDS.md
 - Security Policy: .ai/SECURITY_POLICY.md
+- Gemini Models: .ai/GEMINI_PROMPT.md
+- Qwen Models: .ai/QWEN_PROMPT.md

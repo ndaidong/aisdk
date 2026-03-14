@@ -14,7 +14,7 @@ All JavaScript code generated must follow these rules strictly.
 ## Documentation
 - Add JSDocs comments before functions and important variables
 - Comments must be in American English
-- Never use Vietnamese in source code
+- Never use Vietnamese or Chinese in source code
 
 ## Frontend Specifics
 - Use native CSS
