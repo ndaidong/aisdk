@@ -1,5 +1,5 @@
 {
-  "name": "@ndaidong/aisdk",
+  "name": "aisdk",
   "version": "0.0.1",
   "description": "A thin, unified AI client for OpenAI, Anthropic, Google, DashScope, and DeepSeek with automatic param normalization and fallback support",
   "repository": {
