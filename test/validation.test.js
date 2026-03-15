@@ -72,21 +72,20 @@ describe('validateAskOptions', () => {
       )
     })
 
-    it('should throw when prompt is missing', () => {
+    it('should throw when prompt and messages are both missing', () => {
       assert.throws(
         () => validateAskOptions({
           model: 'gpt-4o', apikey: 'test-key',
         }),
-        /"prompt" must be a non-empty string/
+        /either "prompt" or "messages" must be provided/
       )
     })
 
-    it('should throw when prompt is empty string', () => {
-      assert.throws(
+    it('should pass with empty string prompt', () => {
+      assert.doesNotThrow(
         () => validateAskOptions({
           model: 'gpt-4o', apikey: 'test-key', prompt: '',
-        }),
-        /"prompt" must be a non-empty string/
+        })
       )
     })
 
@@ -95,7 +94,51 @@ describe('validateAskOptions', () => {
         () => validateAskOptions({
           model: 'gpt-4o', apikey: 'test-key', prompt: 123,
         }),
-        /"prompt" must be a non-empty string/
+        /"prompt" must be a string/
+      )
+    })
+
+    it('should pass with valid messages array', () => {
+      assert.doesNotThrow(
+        () => validateAskOptions({
+          model: 'gpt-4o',
+          apikey: 'test-key',
+          messages: [
+            { role: 'user', content: 'Hello' },
+            { role: 'assistant', content: 'Hi there!' },
+          ],
+        })
+      )
+    })
+
+    it('should throw when messages is not an array', () => {
+      assert.throws(
+        () => validateAskOptions({
+          model: 'gpt-4o', apikey: 'test-key', messages: 'not-array',
+        }),
+        /"messages" must be an array/
+      )
+    })
+
+    it('should throw when messages has invalid role', () => {
+      assert.throws(
+        () => validateAskOptions({
+          model: 'gpt-4o',
+          apikey: 'test-key',
+          messages: [{ role: 'invalid', content: 'test' }],
+        }),
+        /messages\[0\]\.role must be 'user', 'assistant', or 'system'/
+      )
+    })
+
+    it('should throw when messages has missing content', () => {
+      assert.throws(
+        () => validateAskOptions({
+          model: 'gpt-4o',
+          apikey: 'test-key',
+          messages: [{ role: 'user' }],
+        }),
+        /messages\[0\]\.content must be a string/
       )
     })
   })
