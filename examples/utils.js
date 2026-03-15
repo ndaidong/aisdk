@@ -83,6 +83,7 @@ export const printResult = (result, modelId) => {
 
   if (result.success) {
     console.log(`Input tokens: ${result.usage.inputTokens}`)
+    console.log(`Reasoning tokens: ${result.usage.reasoningTokens}`)
     console.log(`Output tokens: ${result.usage.outputTokens}`)
     console.log(`Cache tokens: ${result.usage.cacheTokens}`)
     console.log(`Estimated cost: $${result.usage.estimatedCost.toFixed(6)}`)

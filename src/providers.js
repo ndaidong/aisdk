@@ -23,7 +23,8 @@
  * @typedef {Object} RawUsage
  * @property {number} inputTokens
  * @property {number} outputTokens
- * @property {number} cacheTokens   - 0 when not applicable
+ * @property {number} cacheTokens     - 0 when not applicable
+ * @property {number} reasoningTokens - 0 when not applicable
  */
 
 /**
@@ -84,6 +85,7 @@ const openai = {
     inputTokens: data.usage?.prompt_tokens ?? 0,
     outputTokens: data.usage?.completion_tokens ?? 0,
     cacheTokens: data.usage?.prompt_tokens_details?.cached_tokens ?? 0,
+    reasoningTokens: data.usage?.completion_tokens_details?.reasoning_tokens ?? 0,
   }),
 }
 
@@ -119,7 +121,8 @@ const anthropic = {
   extractUsage: (data) => ({
     inputTokens: data.usage?.input_tokens ?? 0,
     outputTokens: data.usage?.output_tokens ?? 0,
-    cacheTokens: data.usage?.cache_read_input_tokens ?? 0,
+    cacheTokens: (data.usage?.cache_read_input_tokens ?? 0) + (data.usage?.cache_creation_input_tokens ?? 0),
+    reasoningTokens: 0,
   }),
 }
 
@@ -155,17 +158,53 @@ const google = {
       throw new Error('Google response blocked by safety filters')
     }
 
-    const text = candidate.content?.parts?.[0]?.text
-    if (!text) {
+    // Handle different content structures
+    const content = candidate.content
+    if (!content) {
       throw new Error('Google response missing content')
     }
-    return text
+
+    // Gemini 2.5 Pro may return parts as array or direct text
+    if (Array.isArray(content.parts)) {
+      const text = content.parts[0]?.text
+      if (!text) {
+        // Model may have used all tokens for reasoning (thoughtsTokenCount)
+        const thoughts = data.usageMetadata?.thoughtsTokenCount ?? 0
+        if (finishReason === 'MAX_TOKENS' && thoughts > 0) {
+          throw new Error(`Google response missing content (used ${thoughts} tokens for reasoning, maxTokens may be too low)`)
+        }
+        throw new Error('Google response missing content')
+      }
+      return text
+    }
+
+    // Some models may return content directly
+    if (typeof content.parts === 'string') {
+      return content.parts
+    }
+
+    throw new Error('Google response missing content')
   },
-  extractUsage: (data) => ({
-    inputTokens: data.usageMetadata?.promptTokenCount ?? 0,
-    outputTokens: data.usageMetadata?.candidatesTokenCount ?? 0,
-    cacheTokens: data.usageMetadata?.cachedContentTokenCount ?? 0,
-  }),
+  extractUsage: (data) => {
+    // For Gemini models with reasoning, candidatesTokenCount may be undefined
+    // when all tokens were used for thinking. Calculate output tokens from
+    // totalTokenCount - promptTokenCount to get actual tokens used.
+    const totalTokens = data.usageMetadata?.totalTokenCount ?? 0
+    const promptTokens = data.usageMetadata?.promptTokenCount ?? 0
+    const candidatesTokens = data.usageMetadata?.candidatesTokenCount ?? 0
+    const thoughtsTokens = data.usageMetadata?.thoughtsTokenCount ?? 0
+    
+    // outputTokens = actual generated tokens (including reasoning)
+    // If candidatesTokenCount is missing, derive from total - prompt
+    const outputTokens = candidatesTokens || (totalTokens - promptTokens)
+    
+    return {
+      inputTokens: promptTokens,
+      outputTokens,
+      cacheTokens: data.usageMetadata?.cachedContentTokenCount ?? 0,
+      reasoningTokens: thoughtsTokens,
+    }
+  },
 }
 
 /** @type {ProviderAdapter} */
@@ -198,6 +237,7 @@ const dashscope = {
       inputTokens: usage?.input_tokens ?? usage?.prompt_tokens ?? 0,
       outputTokens: usage?.output_tokens ?? usage?.completion_tokens ?? 0,
       cacheTokens: 0,
+      reasoningTokens: 0,
     }
   },
 }
@@ -225,7 +265,8 @@ const deepseek = {
   extractUsage: (data) => ({
     inputTokens: data.usage?.prompt_tokens ?? 0,
     outputTokens: data.usage?.completion_tokens ?? 0,
-    cacheTokens: 0,
+    cacheTokens: data.usage?.prompt_cache_hit_tokens ?? 0,
+    reasoningTokens: data.usage?.completion_tokens_details?.reasoning_tokens ?? 0,
   }),
 }
 

@@ -25,6 +25,7 @@ export interface Usage {
   inputTokens: number;
   outputTokens: number;
   cacheTokens: number;
+  reasoningTokens: number;
   estimatedCost: number;
 }
 

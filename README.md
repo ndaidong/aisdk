@@ -11,6 +11,17 @@ A thin, unified AI client for OpenAI, Anthropic, Google, DashScope, and DeepSeek
 - **Token usage tracking**: Detailed token counts and estimated cost per request
 - **Provider-specific options**: Pass provider-specific parameters when needed
 
+## Limitations
+
+This package is designed for **personal project usage** with a focus on simplicity:
+
+- **Text-only chat**: Supports basic text generation and conversation
+- **No streaming**: All responses are returned as complete results
+- **No multimodal inputs**: Images, audio, video, and file uploads are not supported
+- **No function calling**: Tool use and function calling features are not available
+
+For production applications requiring advanced features, consider using the official provider SDKs directly.
+
 ## Installation
 
 ```bash
@@ -80,7 +91,8 @@ Sends a text generation request.
     inputTokens: number,
     outputTokens: number,
     cacheTokens: number,
-    estimatedCost: number // USD
+    reasoningTokens: number,  // Reasoning/thinking tokens (0 for non-reasoning models)
+    estimatedCost: number     // USD
   }
 }
 ```
@@ -133,6 +145,27 @@ const result = await ai.ask({
 })
 ```
 
+### Google (Disable Thinking Mode)
+
+Gemini 2.5 Pro and other reasoning models use thinking tokens by default. Disable thinking mode to reduce latency and cost:
+
+```javascript
+const result = await ai.ask({
+  model: 'gemini-2.5-pro',
+  apikey: process.env.GOOGLE_API_KEY,
+  prompt: 'What is the capital of Vietnam?',
+  maxTokens: 256,
+  providerOptions: {
+    thinkingConfig: {
+      thinkingBudget: 0,      // Disable reasoning tokens
+      includeThoughts: false, // Don't include thought process in response
+    },
+  },
+})
+```
+
+> **Note:** When thinking mode is enabled (default for Gemini 2.5 Pro), the model may use most of the `maxTokens` budget for reasoning. Set a higher `maxTokens` (e.g., 2048) or disable thinking with `thinkingBudget: 0`.
+
 ### With Fallbacks
 
 ```javascript
@@ -163,6 +196,36 @@ const result = await ai.ask({
   model: 'qwen3.5-plus',
   apikey: process.env.DASHSCOPE_API_KEY,
   prompt: 'Hello',
+})
+```
+
+### DashScope with Custom Region
+
+DashScope endpoints vary by region. Use `gatewayUrl` to specify your region:
+
+```javascript
+import { createAi } from '@pwshub/aisdk'
+
+// Singapore region
+const aiSingapore = createAi({
+  gatewayUrl: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1',
+})
+
+// Virginia region (US)
+const aiUS = createAi({
+  gatewayUrl: 'https://dashscope-us.aliyuncs.com/compatible-mode/v1',
+})
+
+// Beijing region (China)
+const aiCN = createAi({
+  gatewayUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+})
+
+// Use the regional client
+const result = await aiSingapore.ask({
+  model: 'qwen3.5-plus',
+  apikey: process.env.DASHSCOPE_API_KEY,
+  prompt: 'Hello from Singapore!',
 })
 ```
 

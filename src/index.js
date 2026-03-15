@@ -12,7 +12,7 @@
  *   temperature: 0.5,
  * })
  * console.log(result.text)
- * console.log(result.usage) // { inputTokens, outputTokens, cacheTokens, estimatedCost }
+ * console.log(result.usage) // { inputTokens, outputTokens, cacheTokens, reasoningTokens, estimatedCost }
  *
  * @example With fallbacks
  * const result = await ai.ask({
@@ -81,6 +81,7 @@ export {
  * @property {number} inputTokens
  * @property {number} outputTokens
  * @property {number} cacheTokens
+ * @property {number} reasoningTokens
  * @property {number} estimatedCost   - In USD, based on models.json pricing
  */
 
@@ -113,7 +114,7 @@ const extractGenConfig = (params) => {
 const calcCost = (usage, record) => {
   const M = 1_000_000
   const inputCost = (usage.inputTokens / M) * record.input_price
-  const outputCost = (usage.outputTokens / M) * record.output_price
+  const outputCost = ((usage.outputTokens + usage.reasoningTokens) / M) * record.output_price
   const cacheCost = (usage.cacheTokens / M) * record.cache_price
 
   // Round to 8 decimal places to avoid floating point noise

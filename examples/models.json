@@ -1,5 +1,49 @@
 [
   {
+    "id": "claude-haiku-4-5",
+    "name": "claude-haiku-4-5",
+    "provider": "anthropic",
+    "input_price": 1,
+    "output_price": 5,
+    "cache_price": 0,
+    "max_in": 200000,
+    "max_out": 64000,
+    "enable": true
+  },
+  {
+    "id": "claude-sonnet-4-6",
+    "name": "claude-sonnet-4-6",
+    "provider": "anthropic",
+    "input_price": 3,
+    "output_price": 15,
+    "cache_price": 0,
+    "max_in": 200000,
+    "max_out": 64000,
+    "enable": true
+  },
+  {
+    "id": "claude-sonnet-4-5",
+    "name": "claude-sonnet-4-5",
+    "provider": "anthropic",
+    "input_price": 3,
+    "output_price": 15,
+    "cache_price": 0,
+    "max_in": 200000,
+    "max_out": 1000000,
+    "enable": true
+  },
+  {
+    "id": "claude-opus-4-6",
+    "name": "claude-opus-4-6",
+    "provider": "anthropic",
+    "input_price": 5,
+    "output_price": 25,
+    "cache_price": 0,
+    "max_in": 200000,
+    "max_out": 128000,
+    "enable": true
+  },
+  {
     "id": "gemini-2.5-flash",
     "name": "gemini-2.5-flash",
     "provider": "google",
@@ -22,6 +66,182 @@
     "enable": true
   },
   {
+    "id": "gemini-2.5-pro",
+    "name": "gemini-2.5-pro",
+    "provider": "google",
+    "input_price": 1.25,
+    "output_price": 10,
+    "cache_price": 0.125,
+    "max_in": 1048576,
+    "max_out": 65536,
+    "enable": true
+  },
+  {
+    "id": "gemini-3.1-pro-preview",
+    "name": "gemini-3.1-pro-preview",
+    "provider": "google",
+    "input_price": 2,
+    "output_price": 12,
+    "cache_price": 0.2,
+    "max_in": 1048576,
+    "max_out": 65536,
+    "enable": true
+  },
+  {
+    "id": "gemini-3.1-flash-lite-preview",
+    "name": "gemini-3.1-flash-lite-preview",
+    "provider": "google",
+    "input_price": 0.25,
+    "output_price": 1.5,
+    "cache_price": 0.025,
+    "max_in": 1048576,
+    "max_out": 65536,
+    "enable": true
+  },
+  {
+    "id": "gpt-4.1-nano",
+    "name": "gpt-4.1-nano",
+    "provider": "openai",
+    "input_price": 0.1,
+    "output_price": 0.4,
+    "cache_price": 0.025,
+    "max_in": 1047576,
+    "max_out": 32768,
+    "enable": true
+  },
+  {
+    "id": "gpt-4.1-mini",
+    "name": "gpt-4.1-mini",
+    "provider": "openai",
+    "input_price": 0.4,
+    "output_price": 1.6,
+    "cache_price": 0.1,
+    "max_in": 1047576,
+    "max_out": 32768,
+    "enable": true
+  },
+  {
+    "id": "gpt-4.1",
+    "name": "gpt-4.1",
+    "provider": "openai",
+    "input_price": 2,
+    "output_price": 8,
+    "cache_price": 0.5,
+    "max_in": 1047576,
+    "max_out": 32768,
+    "enable": true
+  },
+  {
+    "id": "gpt-4o",
+    "name": "gpt-4o",
+    "provider": "openai",
+    "input_price": 2.5,
+    "output_price": 10,
+    "cache_price": 1.25,
+    "max_in": 128000,
+    "max_out": 16384,
+    "enable": true
+  },
+  {
+    "id": "gpt-4o-mini",
+    "name": "gpt-4o-mini",
+    "provider": "openai",
+    "input_price": 0.15,
+    "output_price": 0.6,
+    "cache_price": 0.075,
+    "max_in": 128000,
+    "max_out": 16384,
+    "enable": true
+  },
+  {
+    "id": "gpt-5",
+    "name": "gpt-5",
+    "provider": "openai",
+    "input_price": 1.25,
+    "output_price": 10,
+    "cache_price": 0.125,
+    "max_in": 400000,
+    "max_out": 128000,
+    "enable": true
+  },
+  {
+    "id": "gpt-5-mini",
+    "name": "gpt-5-mini",
+    "provider": "openai",
+    "input_price": 0.25,
+    "output_price": 2,
+    "cache_price": 0.025,
+    "max_in": 400000,
+    "max_out": 128000,
+    "enable": true
+  },
+  {
+    "id": "gpt-5-nano",
+    "name": "gpt-5-nano",
+    "provider": "openai",
+    "input_price": 0.05,
+    "output_price": 0.4,
+    "cache_price": 0.005,
+    "max_in": 400000,
+    "max_out": 128000,
+    "enable": true
+  },
+  {
+    "id": "gpt-5.1",
+    "name": "gpt-5.1",
+    "provider": "openai",
+    "input_price": 1.25,
+    "output_price": 10,
+    "cache_price": 0.125,
+    "max_in": 400000,
+    "max_out": 128000,
+    "enable": true
+  },
+  {
+    "id": "gpt-5.2",
+    "name": "gpt-5.2",
+    "provider": "openai",
+    "input_price": 1.75,
+    "output_price": 14,
+    "cache_price": 0.175,
+    "max_in": 400000,
+    "max_out": 128000,
+    "enable": true
+  },
+  {
+    "id": "gpt-5.4",
+    "name": "gpt-5.4",
+    "provider": "openai",
+    "input_price": 2.5,
+    "output_price": 15,
+    "cache_price": 0.25,
+    "max_in": 1050000,
+    "max_out": 128000,
+    "enable": true
+  },
+  {
+    "id": "o3-mini",
+    "name": "o3-mini",
+    "provider": "openai",
+    "input_price": 1.1,
+    "output_price": 4.4,
+    "cache_price": 0.55,
+    "max_in": 200000,
+    "max_out": 100000,
+    "enable": true
+  },
+  {
+    "id": "o4-mini",
+    "name": "o4-mini",
+    "provider": "openai",
+    "input_price": 1.1,
+    "output_price": 4.4,
+    "cache_price": 0.275,
+    "max_in": 200000,
+    "max_out": 100000,
+    "enable": true
+  },
+  {
     "id": "deepseek-chat",
     "name": "deepseek-chat",
     "provider": "deepseek",
@@ -41,72 +261,6 @@
     "cache_price": 0.028,
     "max_in": 128000,
     "max_out": 64000,
-    "enable": true
-  },
-  {
-    "id": "gpt-4.1-nano",
-    "name": "gpt-4.1-nano",
-    "provider": "openai",
-    "input_price": 0.1,
-    "output_price": 0.4,
-    "cache_price": 0.025,
-    "max_in": 1047576,
-    "max_out": 32768,
-    "enable": true
-  },
-  {
-    "id": "gpt-4o-mini",
-    "name": "gpt-4o-mini",
-    "provider": "openai",
-    "input_price": 0.15,
-    "output_price": 0.6,
-    "cache_price": 0.075,
-    "max_in": 128000,
-    "max_out": 16384,
-    "enable": true
-  },
-  {
-    "id": "gpt-5-nano",
-    "name": "gpt-5-nano",
-    "provider": "openai",
-    "input_price": 0.05,
-    "output_price": 0.4,
-    "cache_price": 0.005,
-    "max_in": 400000,
-    "max_out": 128000,
-    "enable": true
-  },
-  {
-    "id": "claude-opus-4-6",
-    "name": "claude-opus-4-6",
-    "provider": "anthropic",
-    "input_price": 5,
-    "output_price": 25,
-    "cache_price": 0,
-    "max_in": 200000,
-    "max_out": 128000,
-    "enable": true
-  },
-  {
-    "id": "claude-sonnet-4-6",
-    "name": "claude-sonnet-4-6",
-    "provider": "anthropic",
-    "input_price": 3,
-    "output_price": 15,
-    "cache_price": 0,
-    "max_in": 200000,
-    "max_out": 128000,
-    "enable": true
-  },
-  {
-    "id": "claude-haiku-4-5",
-    "name": "claude-haiku-4-5",
-    "provider": "anthropic",
-    "input_price": 1,
-    "output_price": 5,
-    "cache_price": 0,
-    "max_in": 200000,
-    "max_out": 128000,
     "enable": true
   },
   {

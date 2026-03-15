@@ -32,7 +32,8 @@ const main = async () => {
   const ai = createAi()
 
   // Note: temperature is not specified to let each model use its default
-  await runEvalSuite(ai.ask, MODELS, PROMPTS, apikey, { maxTokens: 256 })
+  // gemini-2.5-pro needs higher maxTokens because it uses many tokens for reasoning
+  await runEvalSuite(ai.ask, MODELS, PROMPTS, apikey, { maxTokens: 2048 })
 }
 
 main().catch(console.error)
