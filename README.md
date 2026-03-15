@@ -2,9 +2,9 @@
 
 A thin, unified AI client for OpenAI, Anthropic, Google, DashScope, and DeepSeek with automatic parameter normalization and fallback support.
 
-[![npm version](https://badge.fury.io/js/@extractus%2Farticle-extractor.svg)](https://badge.fury.io/js/@extractus%2Farticle-extractor)
-![CodeQL](https://github.com/extractus/article-extractor/workflows/CodeQL/badge.svg)
-![CI test](https://github.com/extractus/article-extractor/workflows/ci-test/badge.svg)
+[![npm version](https://badge.fury.io/js/@pwshub%2Faisdk.svg)](https://badge.fury.io/js/@pwshub%2Faisdk)
+![CodeQL](https://github.com/pwshub/aisdk/workflows/CodeQL/badge.svg)
+![CI test](https://github.com/pwshub/aisdk/workflows/ci-test/badge.svg)
 
 ## Features
 
