@@ -56,16 +56,23 @@ describe('registry', () => {
     it('should return model record for valid model', () => {
       const {
         record, supportedParams,
-      } = getModel('gpt-4.1-nano')
+      } = getModel('openai/gpt-4.1-nano')
       assert.ok(record)
-      assert.strictEqual(record.id, 'gpt-4.1-nano')
-      assert.ok(record.provider)
+      assert.strictEqual(record.provider, 'openai')
+      assert.strictEqual(record.name, 'gpt-4.1-nano')
       assert.ok(Array.isArray(supportedParams))
+    })
+
+    it('should throw when model is not in provider/name format', () => {
+      assert.throws(
+        () => getModel('gpt-4.1-nano'),
+        /Model must be in 'provider\/name' format/
+      )
     })
 
     it('should throw for unknown model', () => {
       assert.throws(
-        () => getModel('nonexistent-model'),
+        () => getModel('openai/nonexistent-model'),
         /Unknown model/
       )
     })
@@ -74,13 +81,13 @@ describe('registry', () => {
       // First find a disabled model or test the error path
       // This depends on models.json content
       assert.throws(
-        () => getModel('disabled-model-test'),
+        () => getModel('openai/disabled-model-test'),
         /Unknown model/
       )
     })
 
     it('should use provider default params when model has no supportedParams', () => {
-      const { supportedParams } = getModel('gpt-4.1-nano')
+      const { supportedParams } = getModel('openai/gpt-4.1-nano')
       assert.ok(supportedParams.length > 0)
     })
   })
@@ -199,9 +206,9 @@ describe('registry', () => {
 
       setModels(customModels)
 
-      // id is auto-generated from provider_name
-      const { record } = getModel('openai_Custom Model 1')
-      assert.strictEqual(record.id, 'openai_Custom Model 1')
+      // Use provider/name format
+      const { record } = getModel('openai/Custom Model 1')
+      assert.strictEqual(record.name, 'Custom Model 1')
       assert.strictEqual(record.provider, 'openai')
       assert.strictEqual(record.input_price, 0.5)
     })
@@ -223,7 +230,7 @@ describe('registry', () => {
       setModels(customModels)
 
       assert.throws(
-        () => getModel('google_Disabled Custom'),
+        () => getModel('google/Disabled Custom'),
         /currently disabled/
       )
     })
@@ -257,6 +264,8 @@ describe('registry', () => {
       const models = listModels()
       assert.strictEqual(models.length, 1)
       assert.strictEqual(models[0].id, 'openai_Enabled 1')
+      assert.strictEqual(models[0].name, 'Enabled 1')
+      assert.strictEqual(models[0].provider, 'openai')
     })
 
     it('should use provider default params when model has no supportedParams', () => {
@@ -275,7 +284,7 @@ describe('registry', () => {
 
       setModels(customModels)
 
-      const { supportedParams } = getModel('google_No Params Model')
+      const { supportedParams } = getModel('google/No Params Model')
       assert.ok(supportedParams.length > 0)
       assert.ok(supportedParams.includes('temperature'))
       assert.ok(supportedParams.includes('maxTokens'))
@@ -298,7 +307,7 @@ describe('registry', () => {
 
       setModels(customModels)
 
-      const { supportedParams } = getModel('openai_Custom Params Model')
+      const { supportedParams } = getModel('openai/Custom Params Model')
       assert.deepStrictEqual(supportedParams, ['temperature', 'maxTokens', 'customParam'])
     })
   })

@@ -6,7 +6,7 @@
  *
  * const ai = createAi()
  * const result = await ai.ask({
- *   model: 'claude-sonnet-4-20250514',
+ *   model: 'anthropic/claude-sonnet-4-20250514',
  *   apikey: 'your-api-key',
  *   prompt: 'What is the capital of Vietnam?',
  *   temperature: 0.5,
@@ -16,18 +16,18 @@
  *
  * @example With fallbacks
  * const result = await ai.ask({
- *   model: 'gpt-4o',
+ *   model: 'openai/gpt-4o',
  *   apikey: 'your-openai-key',
  *   prompt: '...',
- *   fallbacks: ['gpt-4o-mini', 'claude-haiku-4-5-20251001'],
+ *   fallbacks: ['openai/gpt-4o-mini', 'anthropic/claude-haiku-4-5-20251001'],
  * })
- * if (result.model !== 'gpt-4o') {
+ * if (result.model !== 'openai/gpt-4o') {
  *   console.warn('Fell back to', result.model)
  * }
  *
  * @example Google provider-specific options
  * const result = await ai.ask({
- *   model: 'gemini-2.0-flash',
+ *   model: 'google/gemini-2.0-flash',
  *   apikey: 'your-google-key',
  *   prompt: '...',
  *   providerOptions: {
@@ -40,7 +40,7 @@
  *
  * @example Using messages array for multi-turn conversations
  * const result = await ai.ask({
- *   model: 'claude-sonnet-4-20250514',
+ *   model: 'anthropic/claude-sonnet-4-20250514',
  *   apikey: 'your-api-key',
  *   messages: [
  *     { role: 'user', content: 'What is the capital of Vietnam?' },
@@ -73,12 +73,12 @@ export {
 
 /**
  * @typedef {Object} AskParams
- * @property {string} model                       - Model ID (must be registered via setModels())
+ * @property {string} model                       - Model name or 'provider/name' format (e.g., 'gpt-4o', 'ollama/llama3.2')
  * @property {string} apikey                      - API key for the provider
  * @property {string} [prompt]                    - The user message (alternative to messages)
  * @property {string} [system]                    - Optional system prompt (used with prompt)
  * @property {import('./providers.js').Message[]} [messages] - Array of messages with role and content (alternative to prompt)
- * @property {string[]} [fallbacks]               - Ordered list of fallback model IDs
+ * @property {string[]} [fallbacks]               - Ordered list of fallback models (same format as model)
  * @property {Record<string, unknown>} [providerOptions] - Provider-specific options merged into body
  * @property {number} [temperature]
  * @property {number} [maxTokens]
@@ -145,21 +145,9 @@ const calcCost = (usage, record) => {
  * @throws {InputError} On 4xx — do not retry, fix the input
  */
 const callModel = async (modelId, params, gatewayUrl) => {
-  // Support "provider/name" format for model lookup
-  let lookupModelId = modelId
-  let lookupProvider
-  
-  if (modelId.includes('/')) {
-    const parts = modelId.split('/')
-    if (parts.length === 2) {
-      lookupProvider = parts[0]
-      lookupModelId = parts[1]
-    }
-  }
-  
   const {
     record, supportedParams,
-  } = getModel(lookupModelId, lookupProvider)
+  } = getModel(modelId)
   const {
     provider: providerId, name: modelName,
   } = record

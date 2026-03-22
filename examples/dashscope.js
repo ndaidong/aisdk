@@ -10,12 +10,12 @@ import { createAi } from '../src/index.js'
 import { runEvalSuite } from './utils.js'
 
 const MODELS = [
-  'qwen3.5-plus',
-  'qwen-max',
-  'qwen3-max',
-  'qwen-plus',
-  'qwen3.5-flash',
-  'qwen-flash',
+  'dashscope/qwen3.5-plus',
+  'dashscope/qwen-max',
+  'dashscope/qwen3-max',
+  'dashscope/qwen-plus',
+  'dashscope/qwen3.5-flash',
+  'dashscope/qwen-flash',
 ]
 
 const PROMPTS = [

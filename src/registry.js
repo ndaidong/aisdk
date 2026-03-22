@@ -4,7 +4,8 @@
  * Default models are loaded automatically from ./models.js at import time.
  * Users can modify the registry via addModels() and setModels().
  *
- * This module provides O(1) lookups at runtime via a Map indexed by model ID.
+ * This module provides O(1) lookups at runtime via a Map.
+ * Models can be looked up by name, or by provider/name format.
  *
  * `supportedParams` is optional per record. When absent, the provider's
  * default param set is used.
@@ -141,73 +142,47 @@ const normalizeModelRecord = (model) => {
 }
 
 /**
- * Looks up a model by ID or by name+provider combination.
+ * Looks up a model by provider/name format.
  * Validates it is enabled, and resolves its effective supported params.
  *
- * Supports two lookup modes:
- * 1. Direct ID lookup: getModel('some-uuid-123')
- * 2. Name+provider lookup: getModel('ollama/llama3.2') or getModel('llama3.2', 'ollama')
- *
- * @param {string} modelId - Model ID, or name when provider is specified
- * @param {string} [provider] - Optional provider ID for name+provider lookup
+ * @param {string} modelId - Model in 'provider/name' format (e.g., 'openai/gpt-4o', 'ollama/llama3.2')
  * @returns {{ record: ModelRecord, supportedParams: string[] }}
  * @throws {Error} When the model is not found or is disabled
  */
-export const getModel = (modelId, provider) => {
-  let record
+export const getModel = (modelId) => {
+  // Require provider/name format
+  if (!modelId.includes('/')) {
+    const available = [...REGISTRY.values()].map(m => `${m.provider}/${m.name}`).join(', ')
+    throw new Error(`Model must be in 'provider/name' format. Got: "${modelId}". Available: ${available}`)
+  }
+  
+  const parts = modelId.split('/')
+  if (parts.length !== 2) {
+    const available = [...REGISTRY.values()].map(m => `${m.provider}/${m.name}`).join(', ')
+    throw new Error(`Model must be in 'provider/name' format. Got: "${modelId}". Available: ${available}`)
+  }
+  
+  const [provider, name] = parts
+  
+  // Search for model by name and provider
+  for (const m of REGISTRY.values()) {
+    if (m.name === name && m.provider === provider) {
+      const record = m
+      
+      if (!record.enable) {
+        throw new Error(`Model "${record.provider}/${record.name}" is currently disabled.`)
+      }
 
-  // Mode 1: Direct ID lookup
-  if (!provider && !modelId.includes('/')) {
-    record = REGISTRY.get(modelId)
-  }
-  
-  // Mode 2: Name+provider lookup via "provider/name" format
-  if (!record && !provider && modelId.includes('/')) {
-    const parts = modelId.split('/')
-    if (parts.length === 2) {
-      provider = parts[0]
-      modelId = parts[1]
-    }
-  }
-  
-  // Mode 3: Name+provider lookup via separate arguments
-  if (!record && provider && modelId) {
-    // Search for model by name and provider
-    for (const m of REGISTRY.values()) {
-      if (m.name === modelId && m.provider === provider) {
-        record = m
-        break
+      const supportedParams = record.supportedParams ?? PROVIDER_DEFAULT_PARAMS[record.provider]
+
+      return {
+        record, supportedParams,
       }
     }
   }
   
-  // Mode 4: Name-only lookup (if name is unique)
-  if (!record && !provider) {
-    for (const m of REGISTRY.values()) {
-      if (m.name === modelId) {
-        record = m
-        break
-      }
-    }
-  }
-
-  if (!record) {
-    const available = [...REGISTRY.keys()].map(k => {
-      const m = REGISTRY.get(k)
-      return `${k} (${m.provider}/${m.name})`
-    }).join(', ')
-    throw new Error(`Unknown model "${modelId}". Available: ${available}`)
-  }
-
-  if (!record.enable) {
-    throw new Error(`Model "${record.id}" (${record.provider}/${record.name}) is currently disabled.`)
-  }
-
-  const supportedParams = record.supportedParams ?? PROVIDER_DEFAULT_PARAMS[record.provider]
-
-  return {
-    record, supportedParams,
-  }
+  const available = [...REGISTRY.values()].map(m => `${m.provider}/${m.name}`).join(', ')
+  throw new Error(`Unknown model "${modelId}". Available: ${available}`)
 }
 
 /**

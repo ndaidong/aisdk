@@ -10,9 +10,9 @@ import { createAi } from '../src/index.js'
 import { runEvalSuite } from './utils.js'
 
 const MODELS = [
-  'claude-haiku-4-5',
-  'claude-sonnet-4-6',
-  'claude-opus-4-6',
+  'anthropic/claude-haiku-4-5',
+  'anthropic/claude-sonnet-4-6',
+  'anthropic/claude-opus-4-6',
 ]
 
 const PROMPTS = [
