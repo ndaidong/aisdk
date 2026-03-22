@@ -10,9 +10,9 @@ import { createAi } from '../src/index.js'
 import { runEvalSuite } from './utils.js'
 
 const MODELS = [
-  'gpt-4.1-nano',
-  'gpt-4o-mini',
-  'gpt-5-nano',
+  'openai/gpt-4.1-nano',
+  'openai/gpt-4o-mini',
+  'openai/gpt-5-nano',
 ]
 
 const PROMPTS = [

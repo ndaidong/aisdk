@@ -35,7 +35,7 @@ export class ProviderError extends Error {
    * @param {object} meta
    * @param {number} meta.status        - HTTP status code
    * @param {string} meta.provider      - Provider ID
-   * @param {string} meta.model         - Model ID that was called
+   * @param {string} meta.model         - Model name that was called
    * @param {string} [meta.raw]         - Raw response body from provider
    */
   constructor(message, {

@@ -10,8 +10,8 @@ import { createAi } from '../src/index.js'
 import { runEvalSuite } from './utils.js'
 
 const MODELS = [
-  'deepseek-chat',
-  'deepseek-reasoner',
+  'deepseek/deepseek-chat',
+  'deepseek/deepseek-reasoner',
 ]
 
 const PROMPTS = [

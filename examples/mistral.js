@@ -10,9 +10,9 @@ import { createAi } from '../src/index.js'
 import { runEvalSuite } from './utils.js'
 
 const MODELS = [
-  'mistral-small-latest',
-  'mistral-medium-latest',
-  'magistral-small-latest',
+  'mistral/mistral-small-latest',
+  'mistral/mistral-medium-latest',
+  'mistral/mistral-large-latest',
 ]
 
 const PROMPTS = [

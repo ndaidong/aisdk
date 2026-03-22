@@ -10,9 +10,9 @@ import { createAi } from '../src/index.js'
 import { runEvalSuite } from './utils.js'
 
 const MODELS = [
-  'gemini-2.5-flash-lite',
-  'gemini-2.5-flash',
-  'gemini-2.5-pro',
+  'google/gemini-2.5-flash-lite',
+  'google/gemini-2.5-flash',
+  'google/gemini-2.5-pro',
 ]
 
 const PROMPTS = [

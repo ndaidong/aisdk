@@ -29,7 +29,7 @@ addModels([
 console.log(listModels())
 
 const MODELS = [
-  'qwen2.5:7b',
+  'ollama/qwen2.5:7b',
 ]
 
 const PROMPTS = [
@@ -41,7 +41,7 @@ const PROMPTS = [
 const main = async () => {
   if (MODELS.length === 0) {
     console.log('No models configured. Add model names to the MODELS array in ollama.js')
-    console.log('Example: const MODELS = ["llama3.2", "mistral", "gemma3"]')
+    console.log('Example: const MODELS = ["ollama/llama3.2", "ollama/mistral", "ollama/gemma3"]')
     console.log('\nMake sure Ollama is running and the models are installed:')
     console.log('  ollama serve')
     console.log('  ollama pull llama3.2')

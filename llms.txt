@@ -19,7 +19,7 @@ import { createAi } from '@pwshub/aisdk'
 
 const ai = createAi()
 const result = await ai.ask({
-  model: 'gpt-4o',
+  model: 'openai/gpt-4o',  // provider/name format required
   apikey: 'your-api-key',
   prompt: 'Hello!',
 })
@@ -39,11 +39,11 @@ const result = await ai.ask({
 
 ### Model Lookup
 
-Models can be referenced three ways:
+Models MUST be referenced in `provider/name` format:
 
-1. **provider/name** (recommended for custom models): `'ollama/llama3.2'`
-2. **Direct ID** (predefined models): `'gpt-4o'`
-3. **Name-only** (if unique): `'llama3.2'`
+- `'openai/gpt-4o'`
+- `'ollama/llama3.2'`
+- `'anthropic/claude-sonnet-4-6'`
 
 ### Key Features
 
@@ -70,16 +70,16 @@ const ai = createAi({
 
 ```javascript
 const result = await ai.ask({
-  model: 'gpt-4o',           // required - model ID or provider/name
-  apikey: 'your-key',        // required - API key (empty string for Ollama)
-  prompt: 'Hello',           // required (or use messages)
-  system: 'You are helpful', // optional - system prompt
-  messages: [                // optional - alternative to prompt
+  model: 'openai/gpt-4o',     // required - provider/name format
+  apikey: 'your-key',         // required - API key (empty string for Ollama)
+  prompt: 'Hello',            // required (or use messages)
+  system: 'You are helpful',  // optional - system prompt
+  messages: [                 // optional - alternative to prompt
     { role: 'user', content: 'Hello' },
     { role: 'assistant', content: 'Hi!' },
     { role: 'user', content: 'How are you?' },
   ],
-  fallbacks: ['gpt-4o-mini'], // optional - fallback models
+  fallbacks: ['openai/gpt-4o-mini'], // optional - fallback models
   temperature: 0.7,           // optional - sampling temperature
   maxTokens: 500,             // optional - max output tokens
   topP: 1,                    // optional - nucleus sampling
@@ -93,7 +93,7 @@ const result = await ai.ask({
 // Result
 {
   text: 'Generated text...',
-  model: 'gpt-4o',
+  model: 'openai/gpt-4o',
   usage: {
     inputTokens: 10,
     outputTokens: 50,
@@ -140,7 +140,7 @@ Thinking models use tokens for reasoning. Set higher `maxTokens` or disable thin
 
 ```javascript
 await ai.ask({
-  model: 'gemini-2.5-pro',
+  model: 'google/gemini-2.5-pro',
   apikey: process.env.GOOGLE_API_KEY,
   prompt: 'Hello',
   maxTokens: 2048, // Higher for thinking models
@@ -245,7 +245,7 @@ aisdk/
 
 ```javascript
 const result = await ai.ask({
-  model: 'claude-sonnet-4-6',
+  model: 'anthropic/claude-sonnet-4-6',
   apikey: process.env.ANTHROPIC_API_KEY,
   messages: [
     { role: 'user', content: 'What is TypeScript?' },
@@ -259,13 +259,13 @@ const result = await ai.ask({
 
 ```javascript
 const result = await ai.ask({
-  model: 'gpt-4o',
+  model: 'openai/gpt-4o',
   apikey: process.env.OPENAI_API_KEY,
   prompt: 'Hello',
-  fallbacks: ['gpt-4o-mini', 'claude-haiku-4-5'],
+  fallbacks: ['openai/gpt-4o-mini', 'anthropic/claude-haiku-4-5'],
 })
 
-if (result.model !== 'gpt-4o') {
+if (result.model !== 'openai/gpt-4o') {
   console.warn(`Fell back to ${result.model}`)
 }
 ```

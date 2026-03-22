@@ -45,7 +45,7 @@ const ai = createAi()
 
 // Basic usage
 const result = await ai.ask({
-  model: 'gpt-4o',
+  model: 'openai/gpt-4o',
   apikey: 'your-api-key-here',
   prompt: 'What is the capital of Vietnam?',
   temperature: 0.5,
@@ -73,11 +73,11 @@ Creates an AI client instance.
 Sends a text generation request.
 
 **Parameters:**
-- `model` (string, required): Model ID (must exist in models.json)
+- `model` (string, required): Model name or `provider/name` format (e.g., `'gpt-4o'`, `'ollama/llama3.2'`)
 - `apikey` (string, required): API key for the provider
 - `prompt` (string, required): The user message
 - `system` (string, optional): Optional system prompt
-- `fallbacks` (string[], optional): Ordered list of fallback model IDs
+- `fallbacks` (string[], optional): Ordered list of fallback models (same format as `model`)
 - `providerOptions` (object, optional): Provider-specific options
 - `temperature` (number, optional): Sampling temperature
 - `maxTokens` (number, optional): Maximum output tokens
@@ -115,7 +115,7 @@ import { createAi } from '@pwshub/aisdk'
 const ai = createAi()
 
 const result = await ai.ask({
-  model: 'gpt-4o',
+  model: 'openai/gpt-4o',
   apikey: process.env.OPENAI_API_KEY,
   prompt: 'Explain quantum entanglement',
   temperature: 0.7,
@@ -127,7 +127,7 @@ const result = await ai.ask({
 
 ```javascript
 const result = await ai.ask({
-  model: 'claude-sonnet-4-6',
+  model: 'anthropic/claude-sonnet-4-6',
   apikey: process.env.ANTHROPIC_API_KEY,
   prompt: 'Write a haiku about TypeScript',
   temperature: 0.5,
@@ -138,7 +138,7 @@ const result = await ai.ask({
 
 ```javascript
 const result = await ai.ask({
-  model: 'gemini-2.5-flash',
+  model: 'google/gemini-2.5-flash',
   apikey: process.env.GOOGLE_API_KEY,
   prompt: 'What is 2+2?',
   providerOptions: {
@@ -155,7 +155,7 @@ Gemini 2.5 Pro and other reasoning models use thinking tokens by default. Disabl
 
 ```javascript
 const result = await ai.ask({
-  model: 'gemini-2.5-pro',
+  model: 'google/gemini-2.5-pro',
   apikey: process.env.GOOGLE_API_KEY,
   prompt: 'What is the capital of Vietnam?',
   maxTokens: 256,
@@ -175,10 +175,10 @@ const result = await ai.ask({
 ```javascript
 try {
   const result = await ai.ask({
-    model: 'gpt-4o',
+    model: 'openai/gpt-4o',
     apikey: process.env.OPENAI_API_KEY,
     prompt: 'Hello',
-    fallbacks: ['gpt-4o-mini', 'claude-haiku-4-5'],
+    fallbacks: ['openai/gpt-4o-mini', 'anthropic/claude-haiku-4-5'],
   })
   
   if (result.model !== 'gpt-4o') {
@@ -197,7 +197,7 @@ try {
 
 ```javascript
 const result = await ai.ask({
-  model: 'qwen3.5-plus',
+  model: 'dashscope/qwen3.5-plus',
   apikey: process.env.DASHSCOPE_API_KEY,
   prompt: 'Hello',
 })
@@ -227,7 +227,7 @@ const aiCN = createAi({
 
 // Use the regional client
 const result = await aiSingapore.ask({
-  model: 'qwen3.5-plus',
+  model: 'dashscope/qwen3.5-plus',
   apikey: process.env.DASHSCOPE_API_KEY,
   prompt: 'Hello from Singapore!',
 })
@@ -237,7 +237,7 @@ const result = await aiSingapore.ask({
 
 ```javascript
 const result = await ai.ask({
-  model: 'deepseek-chat',
+  model: 'deepseek/deepseek-chat',
   apikey: process.env.DEEPSEEK_API_KEY,
   prompt: 'Hello',
 })
@@ -247,7 +247,7 @@ const result = await ai.ask({
 
 ```javascript
 const result = await ai.ask({
-  model: 'mistral-large-latest',
+  model: 'mistral/mistral-large-latest',
   apikey: process.env.MISTRAL_API_KEY,
   prompt: 'Hello',
   temperature: 0.7,
@@ -260,7 +260,7 @@ For reproducible results, use `randomSeed`:
 
 ```javascript
 const result = await ai.ask({
-  model: 'mistral-medium-latest',
+  model: 'mistral/mistral-medium-latest',
   apikey: process.env.MISTRAL_API_KEY,
   prompt: 'Write a poem',
   randomSeed: 42,
@@ -344,29 +344,28 @@ const ai = createAi()
 
 ### Using Models
 
-Models can be referenced in three ways:
+Models MUST be referenced in `provider/name` format:
 
 ```javascript
 const ai = createAi()
 
-// Method 1: provider/name format (recommended for CMS models)
+// Correct: provider/name format
+await ai.ask({
+  model: 'openai/gpt-4o',
+  apikey: process.env.OPENAI_API_KEY,
+  prompt: 'Hello',
+})
+
+// Correct: works for all providers
 await ai.ask({
   model: 'ollama/llama3.2',
   apikey: '',
   prompt: 'Hello',
 })
 
-// Method 2: Direct ID lookup (for predefined models)
 await ai.ask({
-  model: 'gpt-4o',
-  apikey: process.env.OPENAI_API_KEY,
-  prompt: 'Hello',
-})
-
-// Method 3: Name-only lookup (if name is unique across providers)
-await ai.ask({
-  model: 'llama3.2',
-  apikey: '',
+  model: 'anthropic/claude-sonnet-4-6',
+  apikey: process.env.ANTHROPIC_API_KEY,
   prompt: 'Hello',
 })
 ```
@@ -395,7 +394,7 @@ const ai = createAi()
 
 try {
   const result = await ai.ask({
-    model: 'gpt-4o',
+    model: 'openai/gpt-4o',
     apikey: process.env.OPENAI_API_KEY,
     prompt: 'Hello',
   })
