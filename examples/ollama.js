@@ -9,7 +9,7 @@
  *   OLLAMA_API_KEY=your-key node examples/ollama.js
  *
  * With custom base URL:
- *   OLLAMA_API_KEY=your-key OLLAMA_BASE_URL=https://ollama.example.com node examples/ollama.js
+ *   OLLAMA_API_KEY=your-key OLLAMA_BASE_URL=https://ollama.example.com/api/chat node examples/ollama.js
  */
 
 import { createAi } from '../src/index.js'
@@ -41,11 +41,7 @@ const main = async () => {
   const apikey = process.env.OLLAMA_API_KEY || ''
   const baseUrl = process.env.OLLAMA_BASE_URL
 
-  const onResponse = (res) => {
-    console.log(res)
-  }
-
-  const ai = createAi(baseUrl ? { gatewayUrl: baseUrl, onResponse } : { onResponse })
+  const ai = createAi(baseUrl ? { gatewayUrl: baseUrl } : {})
   ai.addModels([
     {
       name: 'qwen3:0.6b',
