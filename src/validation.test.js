@@ -81,11 +81,12 @@ describe('validateAskOptions', () => {
       )
     })
 
-    it('should pass with empty string prompt', () => {
-      assert.doesNotThrow(
+    it('should throw when prompt is empty string', () => {
+      assert.throws(
         () => validateAskOptions({
           model: 'gpt-4o', apikey: 'test-key', prompt: '',
-        })
+        }),
+        /"prompt" must be a non-empty string/
       )
     })
 
@@ -94,7 +95,7 @@ describe('validateAskOptions', () => {
         () => validateAskOptions({
           model: 'gpt-4o', apikey: 'test-key', prompt: 123,
         }),
-        /"prompt" must be a string/
+        /"prompt" must be a non-empty string/
       )
     })
 
@@ -138,7 +139,7 @@ describe('validateAskOptions', () => {
           apikey: 'test-key',
           messages: [{ role: 'user' }],
         }),
-        /messages\[0\]\.content must be a string/
+        /messages\[0\]\.content must be a non-empty string/
       )
     })
   })
@@ -280,7 +281,7 @@ describe('validateAskOptions', () => {
             role: 'user', content: 123,
           }],
         }),
-        /messages\[0\].content must be a string/
+        /messages\[0\].content must be a non-empty string/
       )
     })
   })

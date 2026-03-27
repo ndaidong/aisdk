@@ -42,7 +42,7 @@ const openai = {
     Authorization: `Bearer ${apikey}`,
     'Content-Type': 'application/json',
   }),
-  url: () => 'https://api.openai.com/v1/chat/completions',
+  url: (modelName, apikey, gatewayUrl) => gatewayUrl || 'https://api.openai.com/v1/chat/completions',
   buildBody: (modelName, messages, config, providerOptions) => ({
     model: modelName,
     messages,
@@ -96,7 +96,7 @@ const anthropic = {
     'anthropic-version': '2023-06-01',
     'Content-Type': 'application/json',
   }),
-  url: () => 'https://api.anthropic.com/v1/messages',
+  url: (modelName, apikey, gatewayUrl) => gatewayUrl || 'https://api.anthropic.com/v1/messages',
   buildBody: (modelName, messages, config, providerOptions) => {
     const system = messages.find((m) => m.role === 'system')?.content
     const filtered = messages.filter((m) => m.role !== 'system')
@@ -129,8 +129,12 @@ const anthropic = {
 /** @type {ProviderAdapter} */
 const google = {
   headers: () => ({ 'Content-Type': 'application/json' }),
-  url: (modelName, apikey) =>
-    `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apikey}`,
+  url: (modelName, apikey, gatewayUrl) => {
+    if (gatewayUrl) {
+      return gatewayUrl
+    }
+    return `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apikey}`
+  },
   buildBody: (modelName, messages, config, providerOptions) => {
     const system = messages.find((m) => m.role === 'system')?.content
     const contents = messages
@@ -243,7 +247,7 @@ const dashscope = {
   }),
   // International users should use dashscope-intl.aliyuncs.com
   // China users can use dashscope.aliyuncs.com
-  url: () => 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions',
+  url: (modelName, apikey, gatewayUrl) => gatewayUrl || 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions',
   buildBody: (modelName, messages, config, providerOptions) => ({
     model: modelName,
     messages,
@@ -276,7 +280,7 @@ const deepseek = {
     Authorization: `Bearer ${apikey}`,
     'Content-Type': 'application/json',
   }),
-  url: () => 'https://api.deepseek.com/chat/completions',
+  url: (modelName, apikey, gatewayUrl) => gatewayUrl || 'https://api.deepseek.com/chat/completions',
   buildBody: (modelName, messages, config, providerOptions) => ({
     model: modelName,
     messages,
@@ -305,7 +309,7 @@ const mistral = {
     'Content-Type': 'application/json',
     Accept: 'application/json',
   }),
-  url: () => 'https://api.mistral.ai/v1/chat/completions',
+  url: (modelName, apikey, gatewayUrl) => gatewayUrl || 'https://api.mistral.ai/v1/chat/completions',
   buildBody: (modelName, messages, config, providerOptions) => ({
     model: modelName,
     messages,
@@ -333,8 +337,14 @@ const ollama = {
     'Content-Type': 'application/json',
     ...(apikey && { Authorization: `Bearer ${apikey}` }),
   }),
-  // Default to localhost, but can be overridden via gatewayUrl
-  url: () => 'http://localhost:11434/api/chat',
+  url: (modelName, apikey, gatewayUrl) => {
+    if (gatewayUrl) {
+      return gatewayUrl
+    }
+    // Warn about localhost default in development
+    console.warn('[ai-client] Ollama using default localhost URL (http://localhost:11434). Set gatewayUrl in createAi() for production.')
+    return 'http://localhost:11434/api/chat'
+  },
   buildBody: (modelName, messages, config, providerOptions) => {
     // Ollama uses snake_case options
     const options = {}

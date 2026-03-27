@@ -1,7 +1,7 @@
 {
   "name": "@pwshub/aisdk",
-  "version": "0.0.5",
-  "description": "A thin, unified AI client for OpenAI, Anthropic, Google, DashScope, DeepSeek, and Mistral with automatic param normalization and fallback support",
+  "version": "0.0.6",
+  "description": "A thin, unified AI client for OpenAI, Anthropic, Google, DashScope, DeepSeek, and Mistral with automatic param normalization, fallback support, hooks, and timeout",
   "repository": {
     "type": "git",
     "url": "https://github.com/pwshub/aisdk"

@@ -48,8 +48,8 @@ export const validateAskOptions = (params) => {
   }
 
   // When using messages, system can still be provided (will be prepended)
-  if (params.prompt !== undefined && typeof params.prompt !== 'string') {
-    errors.push('"prompt" must be a string')
+  if (params.prompt !== undefined && (typeof params.prompt !== 'string' || params.prompt.trim() === '')) {
+    errors.push('"prompt" must be a non-empty string')
   }
 
   // Optional string fields
@@ -75,8 +75,8 @@ export const validateAskOptions = (params) => {
           errors.push(`messages[${i}] must be an object`)
         } else if (!['user', 'assistant', 'system'].includes(msg.role)) {
           errors.push(`messages[${i}].role must be 'user', 'assistant', or 'system'`)
-        } else if (typeof msg.content !== 'string') {
-          errors.push(`messages[${i}].content must be a string`)
+        } else if (typeof msg.content !== 'string' || msg.content.trim() === '') {
+          errors.push(`messages[${i}].content must be a non-empty string`)
         }
       })
     }

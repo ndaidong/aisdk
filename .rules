@@ -47,6 +47,35 @@
 - State your assumption explicitly if proceeding without confirmation
 - Prefer doing less and asking over doing more and guessing
 
+## Architecture Rules
+- Do not change existing project architecture without explicit approval
+- Do not move or rename core modules unless requested
+- Respect module boundaries
+- Avoid cross-module coupling
+- New modules must follow existing folder structure
+
+## Dependency Rules
+- Prefer built-in APIs over external packages
+- Before adding dependency, explain:
+  - why it is needed
+  - alternatives
+  - bundle size impact
+- Never add dependency for trivial utilities
+- Avoid packages with large dependency trees
+
+## Refactoring Rules
+- Do not refactor unrelated code
+- Do not modify working code outside task scope
+- Prefer minimal diff changes
+- Preserve existing behavior unless explicitly requested
+
+## Git Workflow
+- Work only inside the current branch
+- Do not create or delete branches
+- Do not rewrite git history
+- Do not modify commit messages
+- Changes must correspond to the current issue
+
 ## Tech Stack
 - Runtime: Node.js, Bun, Deno, Browser
 - Language: JavaScript with JSDocs (No TypeScript)
@@ -55,10 +84,11 @@
 
 Reference these URLs when working on related topics:
 
-- Hono: https://hono.dev/llms-full.txt
 - Bun: https://bun.sh/llms-full.txt
-- Redis: https://redis.io/llms.txt
-- Meilisearch: https://www.meilisearch.com/llms-full.txt
+- Google Gemini: https://ai.google.dev/api/llms.txt
+- OpenAI ChatGPT: https://developers.openai.com/api/docs/llms.txt
+- Anthropic Claude: https://platform.claude.com/llms.txt
+- DeepSeek: https://deepseek.apidog.io/llms.txt
 
 ## Context Management
 

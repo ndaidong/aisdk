@@ -30,6 +30,7 @@ import { DEFAULT_MODELS } from './models.js'
  * @property {number} max_out               - Max output tokens
  * @property {boolean} enable
  * @property {string[]} [supportedParams]   - Canonical param names; falls back to provider default
+ * @property {Record<string, import('./coerce.js').ParamOverride>} [paramOverrides] - Model-specific param overrides
  */
 
 /**
@@ -51,11 +52,116 @@ export const PROVIDER_DEFAULT_PARAMS = {
 /** @type {ProviderId[]} */
 const VALID_PROVIDERS = ['openai', 'anthropic', 'google', 'dashscope', 'deepseek', 'mistral', 'ollama']
 
+/**
+ * Creates a new registry instance with the given models
+ * @param {import('./models.js').ModelRecord[]} [initialModels] - Initial models to load (defaults to DEFAULT_MODELS)
+ * @returns {{
+ *   getModel: (modelId: string) => { record: ModelRecord, supportedParams: string[], paramOverrides: Record<string, import('./coerce.js').ParamOverride> },
+ *   listModels: () => ModelRecord[],
+ *   addModels: (models: ModelRecord[]) => void,
+ *   setModels: (models: ModelRecord[]) => void
+ * }}
+ */
+export const createRegistry = (initialModels = DEFAULT_MODELS) => {
+  /** @type {Map<string, ModelRecord>} */
+  let REGISTRY = new Map(initialModels.map((model) => {
+    const normalized = normalizeModelRecord(model)
+    return [normalized.id, normalized]
+  }))
+
+  /**
+   * Looks up a model by provider/name format.
+   * @param {string} modelId - Model in 'provider/name' format
+   * @returns {{ record: ModelRecord, supportedParams: string[], paramOverrides: Record<string, import('./coerce.js').ParamOverride> }}
+   */
+  const getModel = (modelId) => {
+    if (!modelId.includes('/')) {
+      const available = [...REGISTRY.values()].map(m => `${m.provider}/${m.name}`).join(', ')
+      throw new Error(`Model must be in 'provider/name' format. Got: "${modelId}". Available: ${available}`)
+    }
+
+    const parts = modelId.split('/')
+    if (parts.length !== 2) {
+      const available = [...REGISTRY.values()].map(m => `${m.provider}/${m.name}`).join(', ')
+      throw new Error(`Model must be in 'provider/name' format. Got: "${modelId}". Available: ${available}`)
+    }
+
+    const [provider, name] = parts
+
+    for (const m of REGISTRY.values()) {
+      if (m.name === name && m.provider === provider) {
+        const record = m
+
+        if (!record.enable) {
+          throw new Error(`Model "${record.provider}/${record.name}" is currently disabled.`)
+        }
+
+        const supportedParams = record.supportedParams ?? PROVIDER_DEFAULT_PARAMS[record.provider]
+        const paramOverrides = record.paramOverrides ?? {}
+
+        return {
+          record, supportedParams, paramOverrides,
+        }
+      }
+    }
+
+    const available = [...REGISTRY.values()].map(m => `${m.provider}/${m.name}`).join(', ')
+    throw new Error(`Unknown model "${modelId}". Available: ${available}`)
+  }
+
+  /**
+   * Returns all enabled model records.
+   * @returns {ModelRecord[]}
+   */
+  const listModels = () =>
+    [...REGISTRY.values()].filter((m) => m.enable)
+
+  /**
+   * Adds one or more models to the registry.
+   * @param {ModelRecord[]} models - Array of model records to add
+   */
+  const addModels = (models) => {
+    if (!Array.isArray(models)) {
+      throw new Error(`addModels expects an array. Got: ${typeof models}`)
+    }
+
+    models.forEach((model, index) => {
+      validateModelRecord(model, index)
+    })
+
+    models.forEach((model) => {
+      const normalized = normalizeModelRecord(model)
+      REGISTRY.set(normalized.id, normalized)
+    })
+  }
+
+  /**
+   * Replaces the entire registry with a new list of models.
+   * @param {ModelRecord[]} models - Array of model records
+   */
+  const setModels = (models) => {
+    if (!Array.isArray(models)) {
+      throw new Error(`setModels expects an array. Got: ${typeof models}`)
+    }
+
+    models.forEach((model, index) => {
+      validateModelRecord(model, index)
+    })
+
+    REGISTRY = new Map(models.map((model) => {
+      const normalized = normalizeModelRecord(model)
+      return [normalized.id, normalized]
+    }))
+  }
+
+  return { getModel, listModels, addModels, setModels }
+}
+
 /** @type {Map<string, ModelRecord>} */
 let REGISTRY = new Map()
 
 /**
- * Initializes the registry with default models.
+ * Initializes the global registry with default models.
  * Called automatically at module import.
  */
 const initRegistry = () => {
@@ -114,6 +220,50 @@ const validateModelRecord = (model, index) => {
     }
   }
 
+  // Check optional paramOverrides if present
+  if (model.paramOverrides !== undefined) {
+    if (typeof model.paramOverrides !== 'object' || model.paramOverrides === null || Array.isArray(model.paramOverrides)) {
+      errors.push('"paramOverrides" must be an object')
+    } else {
+      for (const [param, override] of Object.entries(model.paramOverrides)) {
+        if (typeof override !== 'object' || override === null) {
+          errors.push(`"paramOverrides.${param}" must be an object`)
+        } else {
+          // Check that override has at least one valid property
+          const validKeys = ['fixedValue', 'supportedValues', 'range']
+          const hasValidKey = Object.keys(override).some((k) => validKeys.includes(k))
+          if (!hasValidKey) {
+            errors.push(`"paramOverrides.${param}" must have at least one of: ${validKeys.join(', ')}`)
+          }
+          // Validate fixedValue type
+          if (override.fixedValue !== undefined && typeof override.fixedValue !== 'number') {
+            errors.push(`"paramOverrides.${param}.fixedValue" must be a number`)
+          }
+          // Validate supportedValues type
+          if (override.supportedValues !== undefined) {
+            if (!Array.isArray(override.supportedValues)) {
+              errors.push(`"paramOverrides.${param}.supportedValues" must be an array`)
+            } else {
+              override.supportedValues.forEach((v, i) => {
+                if (typeof v !== 'number') {
+                  errors.push(`"paramOverrides.${param}.supportedValues[${i}]" must be a number`)
+                }
+              })
+            }
+          }
+          // Validate range type
+          if (override.range !== undefined) {
+            if (typeof override.range !== 'object' || override.range === null) {
+              errors.push(`"paramOverrides.${param}.range" must be an object`)
+            } else if (typeof override.range.min !== 'number' || typeof override.range.max !== 'number') {
+              errors.push(`"paramOverrides.${param}.range" must have numeric min and max`)
+            }
+          }
+        }
+      }
+    }
+  }
+
   if (errors.length > 0) {
     throw new Error(`Invalid model record at index ${index}: ${errors.join('; ')}`)
   }
@@ -138,55 +288,55 @@ const normalizeModelRecord = (model) => {
     max_out: model.max_out ?? 8000,
     enable: model.enable ?? true,
     ...(model.supportedParams !== undefined && { supportedParams: model.supportedParams }),
+    ...(model.paramOverrides !== undefined && { paramOverrides: model.paramOverrides }),
   }
 }
 
 /**
- * Looks up a model by provider/name format.
- * Validates it is enabled, and resolves its effective supported params.
+ * Gets a model from the global registry (for backward compatibility).
+ * For isolated registries, use the getModel from createRegistry() instead.
  *
- * @param {string} modelId - Model in 'provider/name' format (e.g., 'openai/gpt-4o', 'ollama/llama3.2')
- * @returns {{ record: ModelRecord, supportedParams: string[] }}
- * @throws {Error} When the model is not found or is disabled
+ * @param {string} modelId - Model in 'provider/name' format
+ * @returns {{ record: ModelRecord, supportedParams: string[], paramOverrides: Record<string, import('./coerce.js').ParamOverride> }}
  */
 export const getModel = (modelId) => {
-  // Require provider/name format
   if (!modelId.includes('/')) {
     const available = [...REGISTRY.values()].map(m => `${m.provider}/${m.name}`).join(', ')
     throw new Error(`Model must be in 'provider/name' format. Got: "${modelId}". Available: ${available}`)
   }
-  
+
   const parts = modelId.split('/')
   if (parts.length !== 2) {
     const available = [...REGISTRY.values()].map(m => `${m.provider}/${m.name}`).join(', ')
     throw new Error(`Model must be in 'provider/name' format. Got: "${modelId}". Available: ${available}`)
   }
-  
+
   const [provider, name] = parts
-  
-  // Search for model by name and provider
+
   for (const m of REGISTRY.values()) {
     if (m.name === name && m.provider === provider) {
       const record = m
-      
+
       if (!record.enable) {
         throw new Error(`Model "${record.provider}/${record.name}" is currently disabled.`)
       }
 
       const supportedParams = record.supportedParams ?? PROVIDER_DEFAULT_PARAMS[record.provider]
+      const paramOverrides = record.paramOverrides ?? {}
 
       return {
-        record, supportedParams,
+        record, supportedParams, paramOverrides,
       }
     }
   }
-  
+
   const available = [...REGISTRY.values()].map(m => `${m.provider}/${m.name}`).join(', ')
   throw new Error(`Unknown model "${modelId}". Available: ${available}`)
 }
 
 /**
- * Returns all enabled model records.
+ * Returns all enabled model records from the global registry.
+ * For isolated registries, use the listModels from createRegistry() instead.
  *
  * @returns {ModelRecord[]}
  */
@@ -194,23 +344,20 @@ export const listModels = () =>
   [...REGISTRY.values()].filter((m) => m.enable)
 
 /**
- * Adds one or more models to the registry.
- * Existing models with the same ID are overwritten.
+ * Adds one or more models to the global registry.
+ * For isolated registries, use the addModels from createRegistry() instead.
  *
  * @param {ModelRecord[]} models - Array of model records to add
- * @throws {Error} When models is not an array or contains invalid records
  */
 export const addModels = (models) => {
   if (!Array.isArray(models)) {
     throw new Error(`addModels expects an array. Got: ${typeof models}`)
   }
 
-  // Validate and normalize each model record
   models.forEach((model, index) => {
     validateModelRecord(model, index)
   })
 
-  // Add normalized models to the registry
   models.forEach((model) => {
     const normalized = normalizeModelRecord(model)
     REGISTRY.set(normalized.id, normalized)
@@ -218,18 +365,16 @@ export const addModels = (models) => {
 }
 
 /**
- * Replaces the entire model registry with a new list of models.
- * Use this to load models from a CMS or other external source.
+ * Replaces the entire global registry with a new list of models.
+ * For isolated registries, use the setModels from createRegistry() instead.
  *
  * @param {ModelRecord[]} models - Array of model records
- * @throws {Error} When models is not an array or contains invalid records
  */
 export const setModels = (models) => {
   if (!Array.isArray(models)) {
     throw new Error(`setModels expects an array. Got: ${typeof models}`)
   }
 
-  // Validate and normalize each model record
   models.forEach((model, index) => {
     validateModelRecord(model, index)
   })

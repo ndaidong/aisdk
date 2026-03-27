@@ -52,7 +52,7 @@
  */
 
 import {
-  getModel, listModels, setModels, addModels,
+  getModel, createRegistry,
 } from './registry.js'
 import { normalizeConfig } from './config.js'
 import { coerceConfig } from './coerce.js'
@@ -61,14 +61,43 @@ import {
   ProviderError, InputError, throwHttpError,
 } from './errors.js'
 import { validateAskOptions } from './validation.js'
+import { getLogger, setLogger, noopLogger } from './logger.js'
+import { validateApiKey } from './security.js'
 
 export {
   ProviderError, InputError,
+  setLogger, noopLogger, getLogger,
 }
+
+export { addModels, setModels, listModels, createRegistry } from './registry.js'
+/**
+ * @typedef {Object} HookContext
+ * @property {string} model - Model identifier
+ * @property {string} provider - Provider ID
+ * @property {string} url - Request URL
+ * @property {Record<string, string>} headers - Request headers
+ * @property {Record<string, unknown>} body - Request body
+ */
+
+/**
+ * @typedef {Object} ResponseHookContext
+ * @property {string} model - Model identifier
+ * @property {string} provider - Provider ID
+ * @property {string} url - Request URL
+ * @property {Record<string, string>} headers - Request headers
+ * @property {Record<string, unknown>} body - Request body
+ * @property {number} status - Response status code
+ * @property {unknown} data - Response data
+ * @property {number} duration - Request duration in milliseconds
+ */
 
 /**
  * @typedef {Object} AiOptions
  * @property {string} [gatewayUrl] - Optional AI gateway URL override
+ * @property {number} [timeout] - Request timeout in milliseconds (default: 30000)
+ * @property {import('./models.js').ModelRecord[]} [models] - Custom model registry
+ * @property {(context: HookContext) => void | Promise<void>} [onRequest] - Hook called before each request
+ * @property {(context: ResponseHookContext) => void | Promise<void>} [onResponse] - Hook called after each response
  */
 
 /**
@@ -110,7 +139,7 @@ export {
  * @returns {import('./config.js').GenerationConfig}
  */
 const extractGenConfig = (params) => {
-  const keys = ['temperature', 'maxTokens', 'topP', 'topK', 'frequencyPenalty', 'presencePenalty']
+  const keys = ['temperature', 'maxTokens', 'topP', 'topK', 'frequencyPenalty', 'presencePenalty', 'stop', 'seed']
   return Object.fromEntries(
     keys.filter((k) => params[k] !== undefined).map((k) => [k, params[k]])
   )
@@ -126,7 +155,9 @@ const extractGenConfig = (params) => {
 const calcCost = (usage, record) => {
   const M = 1_000_000
   const inputCost = (usage.inputTokens / M) * record.input_price
-  const outputCost = ((usage.outputTokens + usage.reasoningTokens) / M) * record.output_price
+  // Don't add reasoningTokens - they're already included in outputTokens
+  // reasoningTokens is for informational/tracking purposes only
+  const outputCost = (usage.outputTokens / M) * record.output_price
   const cacheCost = (usage.cacheTokens / M) * record.cache_price
 
   // Round to 8 decimal places to avoid floating point noise
@@ -144,21 +175,34 @@ const calcCost = (usage, record) => {
  * @throws {ProviderError} On 429 / 5xx — safe to retry or fallback
  * @throws {InputError} On 4xx — do not retry, fix the input
  */
-const callModel = async (modelId, params, gatewayUrl) => {
+const callModel = async (modelId, params, gatewayUrl, registry = null, timeout = 30000, hooks = {}) => {
+  const logger = getLogger()
+  const { onRequest, onResponse } = hooks
+  
+  // Use provided registry instance or fall back to global getModel
+  const modelLookup = registry ? registry.getModel : getModel
   const {
-    record, supportedParams,
-  } = getModel(modelId)
+    record, supportedParams, paramOverrides,
+  } = modelLookup(modelId)
   const {
     provider: providerId, name: modelName,
   } = record
 
   const { apikey } = params
+  
+  // Validate API key before making request
+  validateApiKey(apikey, providerId, logger)
+  
   const adapter = getAdapter(providerId)
 
   const genConfig = extractGenConfig(params)
 
   // Coerce values to provider's acceptable ranges (clamp, don't throw)
-  const coerced = coerceConfig(genConfig, providerId)
+  // Pass model-specific param overrides
+  const { coerced } = coerceConfig(genConfig, providerId, {
+    modelId,
+    overrides: paramOverrides,
+  })
 
   // Normalize to wire format
   const normalizedConfig = normalizeConfig(coerced, providerId, supportedParams, modelId)
@@ -177,30 +221,79 @@ const callModel = async (modelId, params, gatewayUrl) => {
     },
   ]
 
-  const url = gatewayUrl ?? adapter.url(modelName, apikey)
+  const url = adapter.url(modelName, apikey, gatewayUrl)
+  const requestHeaders = adapter.headers(apikey)
   const body = adapter.buildBody(modelName, messageList, normalizedConfig, providerOptions)
 
+  // Invoke onRequest hook
+  if (onRequest) {
+    await onRequest({
+      model: modelId,
+      provider: providerId,
+      url,
+      headers: requestHeaders,
+      body,
+    })
+  }
+
   let res
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeout)
+  const startTime = Date.now()
+  
   try {
     res = await fetch(url, {
       method: 'POST',
-      headers: adapter.headers(apikey),
+      headers: requestHeaders,
       body: JSON.stringify(body),
+      signal: controller.signal,
     })
   } catch (networkErr) {
+    clearTimeout(timeoutId)
+    
     // Network-level failure (DNS, connection refused) — treat as provider error
-    throw new ProviderError(`Network error calling ${providerId}/${modelId}: ${networkErr.message}`, {
+    logger.warn(
+      `[ai-client] Network error calling ${providerId}/${modelId}: ${networkErr.message}`
+    )
+    
+    if (networkErr.name === 'AbortError') {
+      throw new ProviderError(`Request timeout after ${timeout}ms`, {
+        status: 408,
+        provider: providerId,
+        model: modelId,
+      })
+    }
+    
+    throw new ProviderError(`Network error calling ${providerId}/${modelId}`, {
       status: 0,
       provider: providerId,
       model: modelId,
     })
   }
+  
+  clearTimeout(timeoutId)
 
   if (!res.ok) {
-    await throwHttpError(res, providerId, modelId)
+    await throwHttpError(res, providerId, modelId, logger)
   }
 
   const data = await res.json()
+  const duration = Date.now() - startTime
+  
+  // Invoke onResponse hook
+  if (onResponse) {
+    await onResponse({
+      model: modelId,
+      provider: providerId,
+      url,
+      headers: requestHeaders,
+      body,
+      status: res.status,
+      data,
+      duration,
+    })
+  }
+
   const rawUsage = adapter.extractUsage(data)
 
   /** @type {Usage} */
@@ -228,7 +321,12 @@ const callModel = async (modelId, params, gatewayUrl) => {
  * @returns {{ ask: (params: AskParams) => Promise<AskResult>, listModels: () => import('./registry.js').ModelRecord[] }}
  */
 export const createAi = (opts = {}) => {
-  const { gatewayUrl } = opts
+  const { gatewayUrl, models, timeout, onRequest, onResponse } = opts
+  
+  // Create isolated registry instance for this AI client
+  const registry = models 
+    ? createRegistry(models) 
+    : createRegistry()
 
   /**
    * Sends a text generation request, with optional fallback chain.
@@ -240,6 +338,8 @@ export const createAi = (opts = {}) => {
    * @throws {InputError} Immediately, without trying fallbacks
    */
   const ask = async (params) => {
+    const logger = getLogger()
+    
     // Validate input structure and types
     try {
       validateAskOptions(params)
@@ -254,17 +354,18 @@ export const createAi = (opts = {}) => {
 
     const chain = [params.model, ...(params.fallbacks ?? [])]
     let lastProviderError
+    const hooks = { onRequest, onResponse }
 
     for (const modelId of chain) {
       try {
-        return await callModel(modelId, params, gatewayUrl)
+        return await callModel(modelId, params, gatewayUrl, registry, timeout, hooks)
       } catch (err) {
         if (err instanceof InputError) {
           // Input errors are not fallback-able — rethrow immediately
           throw err
         }
         // ProviderError — log and try next model in chain
-        console.warn(
+        logger.warn(
           `[ai-client] ${err.message}. ${modelId === chain.at(-1) ? 'No more fallbacks.' : 'Trying next fallback...'}`
         )
         lastProviderError = err
@@ -275,8 +376,8 @@ export const createAi = (opts = {}) => {
   }
 
   return {
-    ask, listModels,
+    ask,
+    listModels: () => registry.listModels(),
+    addModels: (m) => registry.addModels(m),
   }
 }
-
-export { addModels, setModels, listModels }

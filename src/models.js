@@ -198,6 +198,11 @@ export const DEFAULT_MODELS = [
     max_in: 400000,
     max_out: 128000,
     enable: true,
+    // gpt-5-nano only supports default values for temperature and top_p
+    paramOverrides: {
+      temperature: { fixedValue: 1 },
+      topP: { fixedValue: 1 },
+    },
   },
   {
     id: 'gpt-5.1',

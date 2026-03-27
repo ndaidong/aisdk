@@ -24,6 +24,9 @@
  * }
  */
 
+import { sanitizeForLogging } from './security.js'
+import { getLogger } from './logger.js'
+
 /**
  * Thrown when the provider returns a transient or server-side error.
  * HTTP 429 (rate limit) and 5xx responses produce this error.
@@ -37,9 +40,10 @@ export class ProviderError extends Error {
    * @param {string} meta.provider      - Provider ID
    * @param {string} meta.model         - Model name that was called
    * @param {string} [meta.raw]         - Raw response body from provider
+   * @param {number} [meta.retryAfter]  - Milliseconds to wait before retrying
    */
   constructor(message, {
-    status, provider, model, raw,
+    status, provider, model, raw, retryAfter,
   } = {}) {
     super(message)
     this.name = 'ProviderError'
@@ -47,6 +51,7 @@ export class ProviderError extends Error {
     this.provider = provider
     this.model = model
     this.raw = raw
+    this.retryAfter = retryAfter
   }
 }
 
@@ -84,20 +89,62 @@ export class InputError extends Error {
 export const PROVIDER_ERROR_STATUSES = new Set([429, 500, 502, 503, 504])
 
 /**
+ * Parses Retry-After header value to milliseconds
+ * @param {string} value - Retry-After header value (seconds or HTTP date)
+ * @returns {number|undefined} Milliseconds to wait, or undefined if unparseable
+ */
+const parseRetryAfter = (value) => {
+  if (!value) return undefined
+  
+  // Try parsing as seconds (number)
+  const seconds = parseInt(value, 10)
+  if (!isNaN(seconds)) {
+    return seconds * 1000 // Return milliseconds
+  }
+  
+  // Try parsing as HTTP date
+  const date = new Date(value)
+  if (!isNaN(date.getTime())) {
+    return date.getTime() - Date.now()
+  }
+  
+  return undefined
+}
+
+/**
  * Classifies an HTTP response into ProviderError or InputError and throws it.
  *
  * @param {Response} res
  * @param {string} provider
  * @param {string} model
+ * @param {import('./logger.js').Logger} logger
  * @returns {Promise<never>}
  */
-export const throwHttpError = async (res, provider, model) => {
+export const throwHttpError = async (res, provider, model, logger = getLogger()) => {
   const raw = await res.text()
+  const sanitizedRaw = sanitizeForLogging(raw)
+  const retryAfterHeader = res.headers.get('retry-after')
+  
   const meta = {
-    status: res.status, provider, model, raw,
+    status: res.status,
+    provider,
+    model,
+    raw: sanitizedRaw,
+    retryAfter: retryAfterHeader ? parseRetryAfter(retryAfterHeader) : undefined,
   }
-  const message = `${provider}/${model} responded with HTTP ${res.status}`
-
+  const message = `${model} responded with HTTP ${res.status}`
+  
+  // Only log if status is not a client error (avoid logging bad API keys, etc.)
+  if (res.status >= 500 || res.status === 429) {
+    logger.error(`[ai-client] ${message}`)
+    if (sanitizedRaw) {
+      logger.error(sanitizedRaw)
+    }
+    if (meta.retryAfter) {
+      logger.error(`[ai-client] Retry-After: ${meta.retryAfter}ms`)
+    }
+  }
+  
   if (PROVIDER_ERROR_STATUSES.has(res.status)) {
     throw new ProviderError(message, meta)
   }

@@ -14,6 +14,15 @@ A thin, unified AI client for OpenAI, Anthropic, Google, DashScope, DeepSeek, an
 - **Fallback support**: Chain multiple models with automatic fallback on provider errors
 - **Token usage tracking**: Detailed token counts and estimated cost per request
 - **Provider-specific options**: Pass provider-specific parameters when needed
+- **Request timeout**: Configurable timeout per client instance
+- **Request/Response hooks**: `onRequest` and `onResponse` callbacks for observability
+- **Configurable logging**: Custom or silent loggers via `setLogger()`, `getLogger()`, `noopLogger`
+- **Instance-based registry**: Each `createAi()` gets isolated model registry
+- **Custom models at creation**: Load custom models via `createAi({ models: [...] })`
+- **Stop sequences**: Control generation with `stop: string | string[]`
+- **Retry-After support**: `retryAfter` property on `ProviderError` for rate limit handling
+- **API key validation**: Pre-request validation with provider-specific format warnings
+- **Empty prompt validation**: Rejects empty prompts and message content
 
 ## Limitations
 
@@ -63,10 +72,15 @@ Creates an AI client instance.
 
 **Options:**
 - `gatewayUrl` (optional): Override the default API endpoint URL
+- `timeout` (optional): Request timeout in milliseconds (default: 30000)
+- `models` (optional): Custom model registry to load on creation
+- `onRequest` (optional): Hook called before each request with context `{ model, provider, url, headers, body }`
+- `onResponse` (optional): Hook called after each response with context `{ model, provider, url, headers, body, status, data, duration }`
 
 **Returns:** An object with:
 - `ask(params)`: Send a generation request
 - `listModels()`: Get all available models from the registry
+- `addModels(models)`: Add models to this instance's registry
 
 ### `ai.ask(params)`
 
@@ -75,8 +89,9 @@ Sends a text generation request.
 **Parameters:**
 - `model` (string, required): Use `provider/name` format (e.g., `anthropic/claude-sonnet-4-6`)
 - `apikey` (string, required): API key for the provider. With ollama local, set to any string.
-- `prompt` (string, required): The user message
+- `prompt` (string, required): The user message (or use `messages` array)
 - `system` (string, optional): Optional system prompt
+- `messages` (array, optional): Array of `{ role, content }` objects for multi-turn conversations
 - `fallbacks` (string[], optional): Ordered list of fallback models (same format as `model`)
 - `providerOptions` (object, optional): Provider-specific options
 - `temperature` (number, optional): Sampling temperature
@@ -85,6 +100,8 @@ Sends a text generation request.
 - `topK` (number, optional): Top-K sampling
 - `frequencyPenalty` (number, optional): Frequency penalty
 - `presencePenalty` (number, optional): Presence penalty
+- `stop` (string | string[], optional): Stop sequences to end generation
+- `seed` (number, optional): Random seed for reproducible output
 
 **Returns:** Promise resolving to:
 ```javascript
@@ -267,6 +284,151 @@ const result = await ai.ask({
 })
 ```
 
+### With Stop Sequences
+
+Control where generation stops using `stop` parameter:
+
+```javascript
+// Single stop sequence
+const result = await ai.ask({
+  model: 'openai/gpt-4o',
+  apikey: process.env.OPENAI_API_KEY,
+  prompt: 'Complete this sentence: The quick brown fox',
+  stop: '.',  // Stop at first period
+})
+
+// Multiple stop sequences
+const result = await ai.ask({
+  model: 'anthropic/claude-sonnet-4-6',
+  apikey: process.env.ANTHROPIC_API_KEY,
+  prompt: 'Write a story',
+  stop: ['\n\n', 'THE END'],  // Stop at double newline or "THE END"
+})
+```
+
+### With Request Timeout
+
+Set a custom timeout for requests:
+
+```javascript
+import { createAi } from '@pwshub/aisdk'
+
+const ai = createAi({
+  timeout: 5000,  // 5 second timeout
+})
+
+try {
+  const result = await ai.ask({
+    model: 'openai/gpt-4o',
+    apikey: process.env.OPENAI_API_KEY,
+    prompt: 'Hello',
+  })
+} catch (error) {
+  if (error.message.includes('timeout')) {
+    console.error('Request timed out after 5 seconds')
+  }
+}
+```
+
+### With Request/Response Hooks
+
+Add observability with hooks:
+
+```javascript
+import { createAi } from '@pwshub/aisdk'
+
+const ai = createAi({
+  onRequest: (context) => {
+    console.log(`Sending request to ${context.provider}/${context.model}`)
+    console.log(`URL: ${context.url}`)
+    // context.headers and context.body are also available
+  },
+  onResponse: (context) => {
+    console.log(`Response from ${context.provider}/${context.model}`)
+    console.log(`Status: ${context.status}, Duration: ${context.duration}ms`)
+    // context.data contains the raw response
+  },
+})
+
+const result = await ai.ask({
+  model: 'openai/gpt-4o',
+  apikey: process.env.OPENAI_API_KEY,
+  prompt: 'Hello',
+})
+```
+
+### Custom Logger
+
+Configure logging behavior:
+
+```javascript
+import { createAi, setLogger, noopLogger } from '@pwshub/aisdk'
+
+// Use a custom logger
+setLogger({
+  warn: (msg) => myLogger.warning(msg),
+  error: (msg) => myLogger.error(msg),
+  debug: (msg) => myLogger.debug(msg),
+})
+
+// Or silence all logging (production)
+setLogger(noopLogger)
+
+// Get current logger
+const logger = getLogger()
+
+const ai = createAi()
+```
+
+### Instance-Based Registry
+
+Each `createAi()` instance has its own isolated model registry:
+
+```javascript
+import { createAi, addModels } from '@pwshub/aisdk'
+
+// Create two independent instances
+const ai1 = createAi()
+const ai2 = createAi()
+
+// Add models to ai1 only
+ai1.addModels([
+  { name: 'llama3.2', provider: 'ollama' },
+])
+
+// ai1 has the custom model
+console.log(ai1.listModels().length) // includes llama3.2
+
+// ai2 doesn't have it (isolated registry)
+console.log(ai2.listModels().length) // default models only
+```
+
+### Custom Models at Creation
+
+Load custom models when creating the AI client:
+
+```javascript
+import { createAi } from '@pwshub/aisdk'
+
+const customModels = [
+  { name: 'llama3.2', provider: 'ollama' },
+  { name: 'mistral', provider: 'ollama' },
+  {
+    name: 'gpt-4o-custom',
+    provider: 'openai',
+    input_price: 0.5,
+    output_price: 1.5,
+  },
+]
+
+const ai = createAi({
+  models: customModels,
+})
+
+// This instance only has the custom models
+console.log(ai.listModels())
+```
+
 ## Supported Models
 
 The library comes with just a few popular models configured in src/models.js
@@ -396,6 +558,11 @@ try {
     // Provider-side error (rate limit, server error)
     // Safe to retry or fallback to another model
     console.error('Provider error:', error.status, error.message)
+    
+    // For rate limits (429), check retryAfter for recommended wait time
+    if (error.retryAfter) {
+      console.log(`Retry after ${error.retryAfter} seconds`)
+    }
   } else if (error instanceof InputError) {
     // Client-side error (bad request, invalid API key)
     // Do NOT retry — fix the input
@@ -403,6 +570,19 @@ try {
   }
 }
 ```
+
+**ProviderError properties:**
+- `status`: HTTP status code (429, 5xx, etc.)
+- `provider`: Provider ID (e.g., 'openai', 'anthropic')
+- `model`: Model identifier that failed
+- `raw`: Raw response data from provider
+- `retryAfter`: Seconds to wait before retrying (only for 429 responses with Retry-After header)
+
+**InputError properties:**
+- `status`: HTTP status code (400, 401, 403, 422)
+- `provider`: Provider ID
+- `model`: Model identifier
+- `raw`: Raw response data from provider
 
 ## Running Evaluation Scripts
 

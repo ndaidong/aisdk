@@ -53,6 +53,15 @@ Models MUST be referenced in `provider/name` format:
 - **Fallback support**: Chain models with automatic fallback
 - **Token tracking**: Input, output, cache, reasoning tokens + cost
 - **Messages support**: Multi-turn conversations with `{role, content}` array
+- **Request timeout**: Configurable timeout per client instance
+- **Request/Response hooks**: `onRequest` and `onResponse` callbacks for observability
+- **Configurable logging**: Custom or silent loggers via `setLogger()`, `getLogger()`, `noopLogger`
+- **Instance-based registry**: Each `createAi()` gets isolated model registry
+- **Custom models at creation**: Load custom models via `createAi({ models: [...] })`
+- **Stop sequences**: Control generation with `stop: string | string[]`
+- **Retry-After support**: `retryAfter` property on `ProviderError` for rate limit handling
+- **API key validation**: Pre-request validation with provider-specific format warnings
+- **Empty prompt validation**: Rejects empty prompts and message content
 
 ## API Reference
 
@@ -63,6 +72,16 @@ import { createAi } from '@pwshub/aisdk'
 
 const ai = createAi({
   gatewayUrl: 'https://custom-endpoint.com/v1', // optional
+  timeout: 5000,  // optional - request timeout in ms (default: 30000)
+  models: [...],  // optional - custom model registry
+  onRequest: (context) => {  // optional - hook before each request
+    console.log(`Request to ${context.provider}/${context.model}`)
+    // context: { model, provider, url, headers, body }
+  },
+  onResponse: (context) => {  // optional - hook after each response
+    console.log(`Response: ${context.status} in ${context.duration}ms`)
+    // context: { model, provider, url, headers, body, status, data, duration }
+  },
 })
 ```
 
@@ -84,6 +103,8 @@ const result = await ai.ask({
   maxTokens: 500,             // optional - max output tokens
   topP: 1,                    // optional - nucleus sampling
   topK: 50,                   // optional - top-K sampling
+  stop: '.',                  // optional - stop sequence (string or array)
+  seed: 42,                   // optional - random seed for reproducibility
   providerOptions: {          // optional - provider-specific options
     safetySettings: [...],
     thinkingConfig: {...},
@@ -202,12 +223,30 @@ try {
   if (error instanceof ProviderError) {
     // Rate limit, server error - safe to retry or fallback
     console.error('Provider error:', error.status, error.message)
+
+    // For rate limits (429), check retryAfter for recommended wait time
+    if (error.retryAfter) {
+      console.log(`Retry after ${error.retryAfter} seconds`)
+    }
   } else if (error instanceof InputError) {
     // Bad request, invalid API key - fix input, don't retry
     console.error('Input error:', error.status, error.message)
   }
 }
 ```
+
+**ProviderError properties:**
+- `status`: HTTP status code (429, 5xx, etc.)
+- `provider`: Provider ID (e.g., 'openai', 'anthropic')
+- `model`: Model identifier that failed
+- `raw`: Raw response data from provider
+- `retryAfter`: Seconds to wait before retrying (only for 429 responses with Retry-After header)
+
+**InputError properties:**
+- `status`: HTTP status code (400, 401, 403, 422)
+- `provider`: Provider ID
+- `model`: Model identifier
+- `raw`: Raw response data from provider
 
 ## File Structure
 
@@ -276,6 +315,139 @@ if (result.model !== 'openai/gpt-4o') {
 const result = await ai.ask({...})
 console.log(`Estimated cost: $${result.usage.estimatedCost}`)
 // Based on model pricing: (inputTokens/1M * input_price) + (outputTokens/1M * output_price)
+```
+
+### With Stop Sequences
+
+```javascript
+// Single stop sequence
+const result = await ai.ask({
+  model: 'openai/gpt-4o',
+  apikey: process.env.OPENAI_API_KEY,
+  prompt: 'Complete this sentence: The quick brown fox',
+  stop: '.',  // Stop at first period
+})
+
+// Multiple stop sequences
+const result = await ai.ask({
+  model: 'anthropic/claude-sonnet-4-6',
+  apikey: process.env.ANTHROPIC_API_KEY,
+  prompt: 'Write a story',
+  stop: ['\n\n', 'THE END'],  // Stop at double newline or "THE END"
+})
+```
+
+### With Request Timeout
+
+```javascript
+import { createAi } from '@pwshub/aisdk'
+
+const ai = createAi({
+  timeout: 5000,  // 5 second timeout
+})
+
+try {
+  const result = await ai.ask({
+    model: 'openai/gpt-4o',
+    apikey: process.env.OPENAI_API_KEY,
+    prompt: 'Hello',
+  })
+} catch (error) {
+  if (error.message.includes('timeout')) {
+    console.error('Request timed out after 5 seconds')
+  }
+}
+```
+
+### With Request/Response Hooks
+
+```javascript
+import { createAi } from '@pwshub/aisdk'
+
+const ai = createAi({
+  onRequest: (context) => {
+    console.log(`Sending request to ${context.provider}/${context.model}`)
+    console.log(`URL: ${context.url}`)
+    // context.headers and context.body are also available
+  },
+  onResponse: (context) => {
+    console.log(`Response from ${context.provider}/${context.model}`)
+    console.log(`Status: ${context.status}, Duration: ${context.duration}ms`)
+    // context.data contains the raw response
+  },
+})
+
+const result = await ai.ask({
+  model: 'openai/gpt-4o',
+  apikey: process.env.OPENAI_API_KEY,
+  prompt: 'Hello',
+})
+```
+
+### Custom Logger
+
+```javascript
+import { createAi, setLogger, noopLogger, getLogger } from '@pwshub/aisdk'
+
+// Use a custom logger
+setLogger({
+  warn: (msg) => myLogger.warning(msg),
+  error: (msg) => myLogger.error(msg),
+  debug: (msg) => myLogger.debug(msg),
+})
+
+// Or silence all logging (production)
+setLogger(noopLogger)
+
+// Get current logger
+const logger = getLogger()
+
+const ai = createAi()
+```
+
+### Instance-Based Registry
+
+```javascript
+import { createAi, addModels } from '@pwshub/aisdk'
+
+// Create two independent instances
+const ai1 = createAi()
+const ai2 = createAi()
+
+// Add models to ai1 only
+ai1.addModels([
+  { name: 'llama3.2', provider: 'ollama' },
+])
+
+// ai1 has the custom model
+console.log(ai1.listModels().length) // includes llama3.2
+
+// ai2 doesn't have it (isolated registry)
+console.log(ai2.listModels().length) // default models only
+```
+
+### Custom Models at Creation
+
+```javascript
+import { createAi } from '@pwshub/aisdk'
+
+const customModels = [
+  { name: 'llama3.2', provider: 'ollama' },
+  { name: 'mistral', provider: 'ollama' },
+  {
+    name: 'gpt-4o-custom',
+    provider: 'openai',
+    input_price: 0.5,
+    output_price: 1.5,
+  },
+]
+
+const ai = createAi({
+  models: customModels,
+})
+
+// This instance only has the custom models
+console.log(ai.listModels())
 ```
 
 ## Environment Variables

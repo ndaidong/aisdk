@@ -35,6 +35,8 @@
  * @property {string} wireKey
  * @property {'root'|'generationConfig'} [scope] - Google nests some params
  * @property {ParamRange} [range] - Valid range for the param (for clamping)
+ * @property {number[]} [supportedValues] - Discrete allowed values (e.g. [1] for fixed temp)
+ * @property {number} [fixedValue] - Force param to this value regardless of input
  */
 
 /**
@@ -51,6 +53,8 @@ const WIRE_KEYS = {
       wireKey: 'temperature', range: {
         min: 0, max: 2,
       },
+      // Note: Some OpenAI models (e.g. gpt-5-nano) only support fixedValue: 1
+      // Model-specific overrides are handled in coerce.js via registry overrides
     },
     topP: {
       wireKey: 'top_p', range: {
@@ -67,6 +71,8 @@ const WIRE_KEYS = {
         min: -2, max: 2,
       },
     },
+    stop: { wireKey: 'stop' },
+    seed: { wireKey: 'seed' },
     // https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create
   },
   anthropic: {
@@ -86,6 +92,7 @@ const WIRE_KEYS = {
         min: 1, max: 100,
       },
     },
+    stop: { wireKey: 'stop_sequences' },
   },
   google: {
     temperature: {
@@ -106,6 +113,8 @@ const WIRE_KEYS = {
         min: 1, max: 100,
       },
     },
+    stop: { wireKey: 'stopSequences', scope: 'generationConfig' },
+    seed: { wireKey: 'seed', scope: 'generationConfig' },
   },
   dashscope: {
     temperature: {
@@ -124,6 +133,7 @@ const WIRE_KEYS = {
         min: 1, max: 100,
       },
     },
+    stop: { wireKey: 'stop' },
   },
   deepseek: {
     temperature: {
@@ -147,6 +157,7 @@ const WIRE_KEYS = {
         min: -2, max: 2,
       },
     },
+    stop: { wireKey: 'stop' },
   },
   mistral: {
     temperature: {
@@ -161,6 +172,7 @@ const WIRE_KEYS = {
       },
     },
     randomSeed: { wireKey: 'random_seed' },
+    stop: { wireKey: 'stop' },
   },
   ollama: {
     temperature: {
@@ -176,6 +188,7 @@ const WIRE_KEYS = {
     },
     topK: { wireKey: 'top_k' },
     seed: { wireKey: 'seed' },
+    stop: { wireKey: 'stop' },
   },
 }
 
