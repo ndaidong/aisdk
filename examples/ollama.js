@@ -12,24 +12,14 @@
  *   OLLAMA_API_KEY=your-key OLLAMA_BASE_URL=https://ollama.example.com node examples/ollama.js
  */
 
-import { createAi, addModels, listModels } from '../src/index.js'
+import { createAi } from '../src/index.js'
 import { runEvalSuite } from './utils.js'
 
-addModels([
-  {
-    name: 'qwen3.5:2b',
-    provider: 'ollama',
-  },
-  {
-    name: 'qwen2.5:7b',
-    provider: 'ollama',
-  },
-])
-
-console.log(listModels())
 
 const MODELS = [
-  'ollama/qwen2.5:7b',
+  'ollama/qwen3:0.6b',
+  'ollama/qwen3.5:2b',
+  'ollama/qwen2.5:0.5b',
 ]
 
 const PROMPTS = [
@@ -51,7 +41,26 @@ const main = async () => {
   const apikey = process.env.OLLAMA_API_KEY || ''
   const baseUrl = process.env.OLLAMA_BASE_URL
 
-  const ai = createAi(baseUrl ? { gatewayUrl: baseUrl } : {})
+  const onResponse = (res) => {
+    console.log(res)
+  }
+
+  const ai = createAi(baseUrl ? { gatewayUrl: baseUrl, onResponse } : { onResponse })
+  ai.addModels([
+    {
+      name: 'qwen3:0.6b',
+      provider: 'ollama',
+    },
+    {
+      name: 'qwen3.5:2b',
+      provider: 'ollama',
+    },
+    {
+      name: 'qwen2.5:0.5b',
+      provider: 'ollama',
+    },
+  ])
+  console.log(ai.listModels())
 
   console.log('Running Ollama provider evaluation...\n')
   console.log(`Using models: ${MODELS.join(', ')}`)
@@ -63,7 +72,7 @@ const main = async () => {
   }
   console.log()
 
-  await runEvalSuite(ai.ask, MODELS, PROMPTS, apikey, { maxTokens: 256 })
+  await runEvalSuite(ai.ask, MODELS, PROMPTS, apikey, { maxTokens: 1000 })
 }
 
 main().catch(console.error)

@@ -178,7 +178,7 @@ const calcCost = (usage, record) => {
 const callModel = async (modelId, params, gatewayUrl, registry = null, timeout = 30000, hooks = {}) => {
   const logger = getLogger()
   const { onRequest, onResponse } = hooks
-  
+
   // Use provided registry instance or fall back to global getModel
   const modelLookup = registry ? registry.getModel : getModel
   const {
@@ -189,10 +189,10 @@ const callModel = async (modelId, params, gatewayUrl, registry = null, timeout =
   } = record
 
   const { apikey } = params
-  
+
   // Validate API key before making request
   validateApiKey(apikey, providerId, logger)
-  
+
   const adapter = getAdapter(providerId)
 
   const genConfig = extractGenConfig(params)
@@ -240,7 +240,7 @@ const callModel = async (modelId, params, gatewayUrl, registry = null, timeout =
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), timeout)
   const startTime = Date.now()
-  
+
   try {
     res = await fetch(url, {
       method: 'POST',
@@ -250,12 +250,12 @@ const callModel = async (modelId, params, gatewayUrl, registry = null, timeout =
     })
   } catch (networkErr) {
     clearTimeout(timeoutId)
-    
+
     // Network-level failure (DNS, connection refused) — treat as provider error
     logger.warn(
       `[ai-client] Network error calling ${providerId}/${modelId}: ${networkErr.message}`
     )
-    
+
     if (networkErr.name === 'AbortError') {
       throw new ProviderError(`Request timeout after ${timeout}ms`, {
         status: 408,
@@ -263,14 +263,14 @@ const callModel = async (modelId, params, gatewayUrl, registry = null, timeout =
         model: modelId,
       })
     }
-    
+
     throw new ProviderError(`Network error calling ${providerId}/${modelId}`, {
       status: 0,
       provider: providerId,
       model: modelId,
     })
   }
-  
+
   clearTimeout(timeoutId)
 
   if (!res.ok) {
@@ -279,7 +279,7 @@ const callModel = async (modelId, params, gatewayUrl, registry = null, timeout =
 
   const data = await res.json()
   const duration = Date.now() - startTime
-  
+
   // Invoke onResponse hook
   if (onResponse) {
     await onResponse({
@@ -322,10 +322,9 @@ const callModel = async (modelId, params, gatewayUrl, registry = null, timeout =
  */
 export const createAi = (opts = {}) => {
   const { gatewayUrl, models, timeout, onRequest, onResponse } = opts
-  
   // Create isolated registry instance for this AI client
-  const registry = models 
-    ? createRegistry(models) 
+  const registry = models
+    ? createRegistry(models)
     : createRegistry()
 
   /**
@@ -339,7 +338,7 @@ export const createAi = (opts = {}) => {
    */
   const ask = async (params) => {
     const logger = getLogger()
-    
+
     // Validate input structure and types
     try {
       validateAskOptions(params)
